@@ -1,0 +1,61 @@
+.about {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 4rem 1.5rem 6rem;
+  display: grid;
+  gap: 3rem;
+}
+
+.about__hero h1 {
+  font-size: clamp(2.2rem, 4vw, 3rem);
+  color: var(--brand-dark);
+  margin-bottom: 1rem;
+}
+
+.about__hero p {
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  max-width: 720px;
+}
+
+.about__grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.about__grid article {
+  background: #ffffff;
+  border-radius: var(--radius-md);
+  padding: 1.8rem;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.06);
+}
+
+.about__team {
+  background: linear-gradient(135deg, rgba(12, 74, 110, 0.95), rgba(14, 165, 233, 0.85));
+  color: #ffffff;
+  border-radius: var(--radius-lg);
+  padding: 2.5rem;
+}
+
+.about__team ul {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.about__team li strong {
+  display: block;
+  font-size: 1.1rem;
+}
+
+.about__team li span {
+  color: rgba(226, 232, 240, 0.8);
+}
+
+@media (min-width: 768px) {
+  .about__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

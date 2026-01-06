@@ -1,0 +1,243 @@
+.shop-orders {
+  display: grid;
+  gap: 2rem;
+}
+
+.shop-orders__intro h2 {
+  font-size: 1.9rem;
+  color: var(--brand-dark);
+}
+
+.shop-orders__intro p {
+  color: var(--text-muted);
+}
+
+.shop-orders__card {
+  background: #ffffff;
+  border-radius: var(--radius-md);
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.05);
+  padding: 2rem;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.shop-orders__toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.shop-orders__toolbar button {
+  border: none;
+  border-radius: 999px;
+  padding: 0.55rem 1.4rem;
+  background: rgba(14, 165, 233, 0.15);
+  color: var(--brand-primary);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.shop-orders__alert {
+  background: rgba(248, 113, 113, 0.15);
+  color: #b91c1c;
+  border-radius: var(--radius-sm);
+  padding: 0.85rem 1.1rem;
+}
+
+.shop-orders__empty {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.shop-orders__table {
+  overflow-x: auto;
+}
+
+.shop-orders__table table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 960px;
+}
+
+.shop-orders__table th,
+.shop-orders__table td {
+  padding: 0.9rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.shop-orders__customer,
+.shop-orders__details,
+.shop-orders__billing {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.shop-orders__cancel {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.shop-orders__cancel textarea {
+  width: 100%;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.75rem;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.shop-orders__cancel-note {
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+.shop-orders__cancel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.shop-orders__cancel-actions button {
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.45rem 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: rgba(248, 250, 252, 1);
+  border: 1px solid rgba(15, 23, 42, 0.12);
+}
+
+.shop-orders__cancel-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.shop-orders__cancel-approve {
+  background: linear-gradient(135deg, var(--brand-secondary), #fb923c);
+  border-color: transparent;
+  color: #0f172a;
+}
+
+.shop-orders__cancel-status {
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.88rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--radius-sm);
+}
+
+.shop-orders__cancel-status--approved {
+  background: rgba(16, 185, 129, 0.12);
+  color: #065f46;
+}
+
+.shop-orders__cancel-status--declined {
+  background: rgba(250, 204, 21, 0.2);
+  color: #92400e;
+}
+
+.shop-orders__cancel-empty {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.shop-orders__status {
+  width: 100%;
+  padding: 0.5rem 0.8rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  background: #f8fafc;
+}
+
+.shop-orders__billing-empty {
+  color: var(--text-muted);
+}
+
+.shop-orders__actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.shop-orders__actions button {
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.45rem 1rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.shop-orders__actions button:first-child {
+  background: var(--brand-dark);
+  color: #ffffff;
+}
+
+.shop-orders__actions button:last-child {
+  background: linear-gradient(135deg, var(--brand-secondary), #facc15);
+  color: #0f172a;
+}
+
+.shop-orders__modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  z-index: 10;
+}
+
+.shop-orders__modal-body {
+  background: #ffffff;
+  border-radius: var(--radius-md);
+  padding: 2rem;
+  width: min(420px, 100%);
+  display: grid;
+  gap: 1rem;
+}
+
+.shop-orders__modal-form label {
+  display: grid;
+  gap: 0.5rem;
+  color: var(--text-muted);
+}
+
+.shop-orders__modal-form input,
+.shop-orders__modal-form textarea {
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: #f8fafc;
+  font-family: inherit;
+}
+
+.shop-orders__modal-form textarea {
+  resize: vertical;
+}
+
+.shop-orders__modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.shop-orders__modal-actions button {
+  border: none;
+  border-radius: 999px;
+  padding: 0.5rem 1.2rem;
+  cursor: pointer;
+}
+
+.shop-orders__modal-actions button[type='button'] {
+  background: rgba(148, 163, 184, 0.2);
+  color: var(--brand-dark);
+}
+
+.shop-orders__modal-actions button[type='submit'] {
+  background: linear-gradient(135deg, var(--brand-secondary), #fb923c);
+  color: #0f172a;
+}

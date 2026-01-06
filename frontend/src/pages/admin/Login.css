@@ -1,0 +1,64 @@
+.admin-login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, rgba(12, 74, 110, 0.9), rgba(14, 165, 233, 0.8));
+  padding: 2rem;
+}
+
+.admin-login__card {
+  background: #ffffff;
+  padding: 2.8rem;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.15);
+  max-width: 420px;
+  width: 100%;
+  display: grid;
+  gap: 1.5rem;
+  text-align: center;
+}
+
+.admin-login__card form {
+  display: grid;
+  gap: 1rem;
+  text-align: left;
+}
+
+.admin-login__card label {
+  display: grid;
+  gap: 0.4rem;
+  color: var(--text-muted);
+}
+
+.admin-login__card input {
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: #f8fafc;
+}
+
+.admin-login__card button {
+  background: linear-gradient(135deg, var(--brand-secondary), #fb923c);
+  color: #0f172a;
+  border: none;
+  border-radius: 999px;
+  padding: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-login__error {
+  background: rgba(248, 113, 113, 0.15);
+  color: #b91c1c;
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.8rem;
+}
+
+.admin-login__loading {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: var(--brand-light);
+  color: var(--text-muted);
+  font-weight: 600;
+}

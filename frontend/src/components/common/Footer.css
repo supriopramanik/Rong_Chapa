@@ -1,0 +1,29 @@
+.footer {
+  background: var(--brand-dark);
+  color: #e2e8f0;
+  padding: 3rem 1.5rem 1.5rem;
+}
+
+.footer__content {
+  max-width: 1200px;
+  margin: 0 auto 2rem;
+  display: grid;
+  gap: 2rem;
+}
+
+.footer h4 {
+  margin-bottom: 0.5rem;
+  font-size: 1.3rem;
+}
+
+.footer__bottom {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+@media (min-width: 768px) {
+  .footer__content {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

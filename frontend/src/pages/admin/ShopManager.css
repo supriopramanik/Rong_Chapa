@@ -1,0 +1,163 @@
+.shop-manager {
+  display: grid;
+  gap: 2rem;
+}
+
+.shop-manager header h2 {
+  font-size: 1.9rem;
+  color: var(--brand-dark);
+}
+
+.shop-manager header p {
+  color: var(--text-muted);
+}
+
+.shop-manager__grid {
+  display: grid;
+  gap: 2rem;
+}
+
+.shop-manager__card {
+  background: #ffffff;
+  border-radius: var(--radius-md);
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.05);
+  padding: 2rem;
+  display: grid;
+  gap: 1.2rem;
+}
+
+.shop-manager__card h3 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.shop-manager__card label {
+  display: grid;
+  gap: 0.5rem;
+  color: var(--text-muted);
+}
+
+.shop-manager__card input,
+.shop-manager__card textarea,
+.shop-manager__card select {
+  padding: 0.65rem 0.9rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: #f8fafc;
+  font-family: inherit;
+}
+
+.shop-manager__card textarea {
+  resize: vertical;
+}
+
+.shop-manager__checkbox {
+  display: flex !important;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.shop-manager__card small {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.shop-manager__actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.shop-manager__actions button {
+  background: linear-gradient(135deg, var(--brand-secondary), #fb923c);
+  color: #0f172a;
+  border: none;
+  border-radius: 999px;
+  padding: 0.7rem 1.4rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.shop-manager__actions button[type='button'] {
+  background: rgba(148, 163, 184, 0.2);
+  color: var(--brand-dark);
+}
+
+.shop-manager__category-form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.shop-manager__category-form button {
+  justify-self: start;
+  background: var(--brand-dark);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 1.2rem;
+}
+
+.shop-manager__category-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.shop-manager__category-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.03);
+  padding: 0.7rem 1rem;
+  border-radius: var(--radius-sm);
+}
+
+.shop-manager__category-list button {
+  background: transparent;
+  color: #ef4444;
+  border: none;
+  cursor: pointer;
+}
+
+.shop-manager__table {
+  overflow-x: auto;
+}
+
+.shop-manager__table table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.shop-manager__table th,
+.shop-manager__table td {
+  padding: 0.9rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.shop-manager__table-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.shop-manager__table-actions button {
+  background: rgba(14, 165, 233, 0.15);
+  color: var(--brand-primary);
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.shop-manager__table-actions button:last-child {
+  background: rgba(248, 113, 113, 0.2);
+  color: #b91c1c;
+}
+
+@media (min-width: 1024px) {
+  .shop-manager__grid {
+    grid-template-columns: 2fr 1fr;
+  }
+}
