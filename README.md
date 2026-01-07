@@ -46,7 +46,7 @@ README.md
   ```bash
   npm run dev
   ```
-3. The backend runs on `http://localhost:4000` and the frontend on `http://localhost:5173` with live reloads.
+3. The backend runs on `https://rong-chapa.onrender.com` and the frontend on `http://localhost:5173` with live reloads.
 
 > Tip: use separate terminals if you want to run just one side — `npm run dev:backend` or `npm run dev:frontend` from the root.
 
@@ -72,7 +72,7 @@ README.md
    ```bash
    npm run dev
    ```
-4. API base URL (development): `http://localhost:4000/api/v1`
+4. API base URL: `https://rong-chapa.onrender.com/api/v1`
 
 ## Frontend Setup
 

@@ -1,1 +1,3 @@
 node_modules
+MONGODB_URI=mongodb+srv://USER:PASSWORD@CLUSTER.mongodb.net/DB?retryWrites=true&w=majority 
+PORT=5000
