@@ -202,6 +202,41 @@
   gap: 1rem;
 }
 
+.dashboard__card--table {
+  padding: 0;
+  gap: 0;
+}
+
+.dashboard__table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.dashboard__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.dashboard__table thead th {
+  text-align: left;
+  font-weight: 700;
+  background: rgba(248, 250, 252, 0.8);
+  color: var(--brand-dark);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+  padding: 0.9rem 1rem;
+  white-space: nowrap;
+}
+
+.dashboard__table tbody td {
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+  color: var(--text-muted);
+}
+
+.dashboard__table tbody tr:last-child td {
+  border-bottom: none;
+}
+
 .dashboard__order {
   display: flex;
   justify-content: space-between;
@@ -245,6 +280,87 @@
 .dashboard__status--cancelled {
   background: rgba(248, 113, 113, 0.15);
   color: #b91c1c;
+}
+
+.dashboard__customers {
+  display: grid;
+  gap: 1rem;
+}
+
+.dashboard__customers-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.dashboard__customers-header h2 {
+  margin: 0;
+}
+
+.dashboard__customers-header p {
+  margin: 0.3rem 0 0;
+  color: var(--text-muted);
+}
+
+.dashboard__customers-total {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(14, 165, 233, 0.1);
+  color: var(--brand-accent);
+  font-weight: 600;
+}
+
+.dashboard__customer-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+.dashboard__customer-item {
+  display: grid;
+  gap: 0.5rem;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.dashboard__customer-item:last-child {
+  border-bottom: none;
+}
+
+.dashboard__customer-primary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.dashboard__customer-primary span {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.dashboard__customer-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.dashboard__customer-date {
+  font-size: 0.85rem;
+  color: rgba(15, 23, 42, 0.6);
+}
+
+.dashboard__empty {
+  margin: 0;
+  padding: 1.25rem 1.5rem;
+  color: var(--text-muted);
+  text-align: center;
 }
 
 @media (min-width: 768px) {

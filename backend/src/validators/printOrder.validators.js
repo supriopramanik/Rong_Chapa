@@ -4,6 +4,7 @@ export const createPrintOrderValidator = [
   body('description').isString().trim().notEmpty().withMessage('Description is required'),
   body('fileLink').optional().isString().trim(),
   body('colorMode').isIn(['color', 'black_white']).withMessage('Color mode is required'),
+  body('sides').isIn(['single', 'double']).withMessage('Print sides is required'),
   body('paperSize')
     .isIn(['a4', 'letter', 'photo_paper', 'passport_photo', 'stamp_photo'])
     .withMessage('Paper size is required'),

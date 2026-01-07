@@ -29,6 +29,7 @@ export const AdminLayout = () => {
           <NavLink end to="/admin">
             Dashboard
           </NavLink>
+          <NavLink to="/admin/customers">Customer Directory</NavLink>
           <NavLink to="/admin/print-orders">Print Orders</NavLink>
           <NavLink to="/admin/shop-orders">Shop Orders</NavLink>
           <NavLink to="/admin/shop">Shop Manager</NavLink>

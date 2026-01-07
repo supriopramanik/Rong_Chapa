@@ -252,9 +252,11 @@ export const AdminPrintOrdersPage = () => {
         <table>
           <thead>
             <tr>
+              <th style={{ width: '60px' }}>#</th>
               <th>Description</th>
               <th>Files</th>
               <th>Color</th>
+              <th>Sides</th>
               <th>Paper Size</th>
               <th>Quantity</th>
               <th>Collection</th>
@@ -268,8 +270,9 @@ export const AdminPrintOrdersPage = () => {
             </tr>
           </thead>
           <tbody>
-            {orders.map((order) => (
+            {orders.map((order, idx) => (
               <tr key={order._id}>
+                <td>{idx + 1}</td>
                 <td>{order.description}</td>
                 <td>
                   {order.fileLink ? (
@@ -281,6 +284,7 @@ export const AdminPrintOrdersPage = () => {
                   )}
                 </td>
                 <td>{order.colorMode === 'color' ? 'Color' : 'B & W'}</td>
+                <td>{order.sides === 'double' ? 'Double' : 'Single'}</td>
                 <td>{paperSizeLabels[order.paperSize] || order.paperSize || '—'}</td>
                 <td>{order.quantity}</td>
                 <td>{formatCollectionTime(order.collectionTime)}</td>

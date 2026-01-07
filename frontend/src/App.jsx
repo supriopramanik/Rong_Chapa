@@ -13,6 +13,7 @@ import { AdminPrintOrdersPage } from './pages/admin/PrintOrders.jsx';
 import { AdminShopManagerPage } from './pages/admin/ShopManager.jsx';
 import { AdminShopOrdersPage } from './pages/admin/ShopOrders.jsx';
 import { AdminLoginPage } from './pages/admin/Login.jsx';
+import { AdminCustomersPage } from './pages/admin/Customers.jsx';
 import { TermsPage } from './pages/Terms.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
 import { CartProvider } from './context/CartContext.jsx';
@@ -54,6 +55,7 @@ const App = () => {
           }
         >
           <Route index element={<AdminDashboardPage />} />
+          <Route path="customers" element={<AdminCustomersPage />} />
           <Route path="print-orders" element={<AdminPrintOrdersPage />} />
           <Route path="shop-orders" element={<AdminShopOrdersPage />} />
           <Route path="shop" element={<AdminShopManagerPage />} />

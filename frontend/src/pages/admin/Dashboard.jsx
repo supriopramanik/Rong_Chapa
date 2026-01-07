@@ -60,6 +60,8 @@ export const AdminDashboardPage = () => {
     { label: 'Print Revenue', value: printOverview.revenue, formatter: formatAmount }
   ];
 
+  
+
   return (
     <div className="dashboard">
       <section className="dashboard__overview-card">
@@ -110,6 +112,8 @@ export const AdminDashboardPage = () => {
           </article>
         ))}
       </section>
+
+      
 
       <section className="dashboard__recent">
         <div className="dashboard__recent-header">

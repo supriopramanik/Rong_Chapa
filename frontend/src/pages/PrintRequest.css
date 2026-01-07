@@ -127,6 +127,25 @@
   color: var(--text-muted);
 }
 
+.print-request__label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.print-request__estimate {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--brand-primary, #0ea5e9);
+}
+
+.print-request__estimate--muted {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
 .print-request__form input,
 .print-request__form select,
 .print-request__form textarea {

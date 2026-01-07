@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { printService } from '../services/printService.js';
@@ -17,6 +17,17 @@ const PAPER_SIZE_OPTIONS = [
   { value: 'passport_photo', label: 'Passport Photo' },
   { value: 'stamp_photo', label: 'Stamp Photo' }
 ];
+
+const RATE_TABLE = {
+  color: {
+    single: 5,
+    double: 8
+  },
+  black_white: {
+    single: 3,
+    double: 6
+  }
+};
 
 const generateCollectionSlots = (days = COLLECTION_SLOT_DAYS) => {
   const slots = [];
@@ -51,6 +62,7 @@ const createInitialFormState = (slots) => ({
   description: '',
   fileLink: '',
   colorMode: 'color',
+  sides: 'single',
   paperSize: PAPER_SIZE_OPTIONS[0].value,
   quantity: 1,
   collectionTime: slots[0]?.value || '',
@@ -64,6 +76,29 @@ export const PrintRequestPage = () => {
   const [form, setForm] = useState(() => createInitialFormState(collectionSlots));
   const [status, setStatus] = useState({ type: '', message: '' });
   const [submitting, setSubmitting] = useState(false);
+  const [estimate, setEstimate] = useState(null);
+
+  const updateEstimate = (nextData) => {
+    const { colorMode, sides, quantity } = nextData;
+    const rate = RATE_TABLE?.[colorMode]?.[sides];
+    if (!rate) {
+      setEstimate(null);
+      return;
+    }
+
+    const qtyNumber = Number(quantity);
+    if (!Number.isFinite(qtyNumber) || qtyNumber <= 0) {
+      setEstimate(null);
+      return;
+    }
+
+    setEstimate(rate * qtyNumber);
+  };
+
+  useEffect(() => {
+    updateEstimate(form);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const hasCollectionSlots = collectionSlots.length > 0;
   const submitLabel = !isAuthenticated
@@ -77,7 +112,11 @@ export const PrintRequestPage = () => {
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm((prev) => {
+      const nextData = { ...prev, [name]: value };
+      updateEstimate(nextData);
+      return nextData;
+    });
   };
 
   const handleSubmit = async (event) => {
@@ -94,13 +133,16 @@ export const PrintRequestPage = () => {
         description: form.description,
         fileLink: form.fileLink,
         colorMode: form.colorMode,
+        sides: form.sides,
         paperSize: form.paperSize,
         quantity: Number(form.quantity),
         collectionTime: form.collectionTime,
         deliveryLocation: form.deliveryLocation,
         paymentTransaction: form.paymentTransaction
       });
-      setForm(createInitialFormState(collectionSlots));
+      const resetState = createInitialFormState(collectionSlots);
+      setForm(resetState);
+      updateEstimate(resetState);
       setStatus({ type: 'success', message: 'Request submitted. Our team will review and confirm shortly.' });
     } catch (error) {
       const message = error?.response?.status === 401
@@ -132,8 +174,8 @@ export const PrintRequestPage = () => {
           <article>
             <h3>A4 Color Prints</h3>
             <ul>
-              <li><strong>Single-sided:</strong> 6tk per sheet</li>
-              <li><strong>Double-sided:</strong> 10tk per sheet</li>
+              <li><strong>Single-sided:</strong> 5tk per sheet</li>
+              <li><strong>Double-sided:</strong> 8tk per sheet</li>
             </ul>
           </article>
           <article>
@@ -201,6 +243,14 @@ export const PrintRequestPage = () => {
             </label>
 
             <label>
+              Print sides
+              <select name="sides" value={form.sides} onChange={handleChange}>
+                <option value="single">Single-sided</option>
+                <option value="double">Double-sided</option>
+              </select>
+            </label>
+
+            <label>
               Paper Size
               <select name="paperSize" value={form.paperSize} onChange={handleChange}>
                 {PAPER_SIZE_OPTIONS.map((option) => (
@@ -212,7 +262,7 @@ export const PrintRequestPage = () => {
             </label>
 
             <label>
-              Quantity
+              Total Page (For estimates total tk)
               <input name="quantity" value={form.quantity} onChange={handleChange} type="number" min="1" required />
             </label>
 
@@ -245,8 +295,17 @@ export const PrintRequestPage = () => {
               </select>
             </label>
 
-            <label>
-              Security Payment Transaction 20tk
+            <label className="print-request__payment">
+              <div className="print-request__label-row">
+                <span>Security Payment Transaction 20tk</span>
+                {estimate !== null ? (
+                  <span className="print-request__estimate">Est. total: {estimate} tk</span>
+                ) : (
+                  <span className="print-request__estimate print-request__estimate--muted">
+                    Set color, sides & quantity
+                  </span>
+                )}
+              </div>
               <input
                 name="paymentTransaction"
                 value={form.paymentTransaction}

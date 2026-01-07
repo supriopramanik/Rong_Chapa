@@ -6,6 +6,7 @@ const printOrderSchema = new mongoose.Schema(
     description: { type: String, required: true, trim: true },
     fileLink: { type: String, trim: true },
     colorMode: { type: String, enum: ['color', 'black_white'], required: true },
+    sides: { type: String, enum: ['single', 'double'], required: true },
     paperSize: {
       type: String,
       enum: ['a4', 'letter', 'photo_paper', 'passport_photo', 'stamp_photo'],

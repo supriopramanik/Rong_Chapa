@@ -5,6 +5,12 @@ const getDashboard = async () => {
   return data.stats;
 };
 
+const getCustomers = async () => {
+  const { data } = await api.get('/admin/customers');
+  return data;
+};
+
 export const adminService = {
-  getDashboard
+  getDashboard,
+  getCustomers
 };
