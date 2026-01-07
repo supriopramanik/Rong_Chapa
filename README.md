@@ -66,7 +66,7 @@ README.md
    - `MONGODB_URI` – MongoDB Atlas connection string
    - `JWT_SECRET` – strong secret for token signing
    - `JWT_EXPIRES_IN` – token lifetime (e.g., `12h`)
-   - `CLIENT_URL` – frontend origin (development: `http://localhost:5173`)
+  - `CLIENT_URL` – comma-separated frontend origins (e.g., `http://localhost:5173,https://rong-chapa.netlify.app,https://rong-chapa.onrender.com`)
    - `ADMIN_EMAIL` / `ADMIN_PASSWORD` – seeded admin credentials
 3. Start the development server:
    ```bash
