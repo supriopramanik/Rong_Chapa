@@ -1,7 +1,8 @@
+
 .about {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 4rem 1.5rem 6rem;
+  padding: 4rem clamp(1rem, 4vw, 1.75rem) 6rem;
   display: grid;
   gap: 3rem;
 }
@@ -18,44 +19,84 @@
   max-width: 720px;
 }
 
-.about__grid {
+.about__sections {
   display: grid;
-  gap: 1.5rem;
+  gap: 1.75rem;
 }
 
-.about__grid article {
+.about__sections article {
   background: #ffffff;
-  border-radius: var(--radius-md);
-  padding: 1.8rem;
-  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.06);
-}
-
-.about__team {
-  background: linear-gradient(135deg, rgba(12, 74, 110, 0.95), rgba(14, 165, 233, 0.85));
-  color: #ffffff;
   border-radius: var(--radius-lg);
-  padding: 2.5rem;
-}
-
-.about__team ul {
-  list-style: none;
-  padding: 0;
-  margin: 1.5rem 0 0;
+  padding: 2rem;
+  box-shadow: 0 30px 70px rgba(15, 23, 42, 0.08);
   display: grid;
   gap: 1rem;
 }
 
-.about__team li strong {
-  display: block;
-  font-size: 1.1rem;
+.about__sections h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--brand-dark);
 }
 
-.about__team li span {
-  color: rgba(226, 232, 240, 0.8);
+.about__sections p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+.about__sections ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+  color: var(--text-muted);
+}
+
+.about__sections li {
+  display: flex;
+  gap: 0.5rem;
+  line-height: 1.6;
+}
+
+.about__sections li::before {
+  content: '•';
+  color: var(--brand-secondary);
+  font-weight: 700;
+  margin-top: 0.15rem;
+}
+
+.about__cta {
+  background: linear-gradient(135deg, rgba(12, 74, 110, 0.95), rgba(14, 165, 233, 0.85));
+  color: #ffffff;
+  border-radius: var(--radius-xl, 32px);
+  padding: 2.75rem;
+  display: grid;
+  gap: 1rem;
+  text-align: center;
+}
+
+.about__cta-button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  background: #ffffff;
+  color: var(--brand-dark);
+  border-radius: 9999px;
+  padding: 0.85rem 2.25rem;
+  font-weight: 600;
+  margin: 0 auto;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.about__cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(15, 23, 42, 0.25);
 }
 
 @media (min-width: 768px) {
-  .about__grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .about__sections {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

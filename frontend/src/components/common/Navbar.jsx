@@ -82,11 +82,6 @@ export const Navbar = () => {
               My Orders
             </NavLink>
           )}
-          {showAdminLink && (
-            <NavLink to={isAdmin ? '/admin' : '/admin/login'} onClick={close}>
-              Admin
-            </NavLink>
-          )}
           <div className="navbar__cart">
             <button
               type="button"

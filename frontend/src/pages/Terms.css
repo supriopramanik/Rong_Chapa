@@ -1,0 +1,115 @@
+.terms {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 4rem clamp(1rem, 4vw, 1.75rem) 6rem;
+  display: grid;
+  gap: 3rem;
+}
+
+.terms__hero {
+  background: linear-gradient(135deg, rgba(12, 74, 110, 0.95), rgba(14, 165, 233, 0.85));
+  color: #ffffff;
+  border-radius: var(--radius-xl, 32px);
+  padding: clamp(2.5rem, 5vw, 3.5rem);
+  display: grid;
+  gap: 1rem;
+}
+
+.terms__eyebrow {
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.terms__hero h1 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.terms__hero p {
+  margin: 0;
+  color: rgba(226, 232, 240, 0.85);
+  font-size: 1.05rem;
+}
+
+.terms__sections {
+  display: grid;
+  gap: 2rem;
+}
+
+.terms__sections article {
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  padding: clamp(1.75rem, 3vw, 2.5rem);
+  box-shadow: 0 30px 70px rgba(15, 23, 42, 0.08);
+  display: grid;
+  gap: 1rem;
+}
+
+.terms__sections h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--brand-dark);
+}
+
+.terms__sections p {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.terms__sections ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--text-muted);
+  display: grid;
+  gap: 0.6rem;
+}
+
+.terms__sections li {
+  position: relative;
+  padding-left: 0.5rem;
+}
+
+.terms__sections li::marker {
+  color: var(--brand-secondary);
+  font-weight: 700;
+}
+
+.terms__closing {
+  font-weight: 600;
+  color: var(--brand-dark);
+}
+
+.terms__cta {
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: var(--radius-xl, 32px);
+  padding: 2.5rem;
+  display: grid;
+  gap: 1rem;
+  text-align: center;
+}
+
+.terms__cta-link {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, var(--brand-secondary), var(--brand-accent));
+  color: #0f172a;
+  border-radius: 9999px;
+  padding: 0.85rem 2.5rem;
+  font-weight: 600;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.terms__cta-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(15, 23, 42, 0.35);
+}
+
+@media (min-width: 768px) {
+  .terms__sections {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

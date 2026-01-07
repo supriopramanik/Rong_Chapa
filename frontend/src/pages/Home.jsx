@@ -2,16 +2,16 @@ import './Home.css';
 
 const services = [
   {
-    title: 'Digital Printing',
-    description: 'High-resolution digital prints with vivid colors and sharp details for marketing materials.'
+    title: 'Custom Print for Students',
+    description: 'Custom document and file printing services designed mainly for students, with free delivery to selected universities.'
   },
   {
-    title: 'Large Format',
-    description: 'Banners, posters, and signage that stand out with weather-resistant finishing.'
+    title: 'Color & Black-White Printing',
+    description: 'Choose between high-quality color printing or cost-effective black & white printing based on your needs.'
   },
   {
-    title: 'Corporate Stationery',
-    description: 'Business cards, letterheads, and branded folders that elevate your identity.'
+    title: 'Nationwide Shop Delivery',
+    description: 'Our shop offers print-related products that are delivered all over Bangladesh through courier service.'
   }
 ];
 
@@ -23,8 +23,8 @@ export const HomePage = () => {
           <span className="home__tag">Premium Print Lab</span>
           <h1>Bring Your Colors To Life With Rong Chapa</h1>
           <p>
-            From bold marketing campaigns to delicate wedding stationery, we craft print materials that leave a lasting
-            impression.
+            Submit your custom print request online and get it printed professionally.
+            We provide free delivery to selected universities and nationwide courier delivery for shop products across Bangladesh.
           </p>
           <div className="home__actions">
             <a href="/print" className="home__btn home__btn--primary">
@@ -36,12 +36,11 @@ export const HomePage = () => {
           </div>
         </div>
         <div className="home__hero-card">
-          <h3>Why customers trust us</h3>
+          <h3>How It Works</h3>
           <ul>
-            <li>⚡ Express turnaround</li>
-            <li>🎯 Color-accurate printing</li>
-            <li>🛠️ In-house finishing lab</li>
-            <li>🧵 Premium material sourcing</li>
+            <li>1️⃣ Submit Your Print Request</li>
+            <li>2️⃣ We Print Your Order</li>
+            <li>3️⃣ Delivery or Collection</li>
           </ul>
         </div>
       </section>
