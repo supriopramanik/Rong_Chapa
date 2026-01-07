@@ -47,6 +47,21 @@
   cursor: pointer;
 }
 
+.admin-login__back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  color: var(--brand-secondary);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.admin-login__back:hover {
+  color: var(--brand-primary);
+}
+
 .admin-login__error {
   background: rgba(248, 113, 113, 0.15);
   color: #b91c1c;

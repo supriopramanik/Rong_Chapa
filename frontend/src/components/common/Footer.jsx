@@ -10,17 +10,12 @@ export const Footer = () => {
         </div>
         <div>
           <h5>Visit Us</h5>
-          <p>House 12, Road 7, Dhanmondi, Dhaka</p>
-          <p>Phone: +880 1234-567890</p>
-        </div>
-        <div>
-          <h5>Hours</h5>
-          <p>Sat - Thu: 9:00 AM - 9:00 PM</p>
-          <p>Friday: 3:00 PM - 9:00 PM</p>
+          <p>Mohanogor Project, Dhaka</p>
+          <p>Phone: +880 1751156833</p>
         </div>
       </div>
       <div className="footer__bottom">
-        <span>© {new Date().getFullYear()} Rong Chapa. All rights reserved.</span>
+        <span>© {new Date().getFullYear()} Rong Chapa. All rights reserved. Design & Developed by <a href="https://ekon-portfolio.vercel.app/" target="_blank">Ekon</a></span>
       </div>
     </footer>
   );

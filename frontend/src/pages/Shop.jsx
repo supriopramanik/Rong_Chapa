@@ -383,6 +383,7 @@ export const ShopPage = () => {
                 <h3>{previewProduct.name}</h3>
                 <p>{previewProduct.description}</p>
                 <span className="shop__preview-price">৳{Number(previewProduct.basePrice || 0).toFixed(2)}</span>
+                <br/>
                 <button
                   type="button"
                   className="shop__submit"

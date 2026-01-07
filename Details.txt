@@ -10,4 +10,4 @@ ADMIN_PASSWORD=ChangeMe123!
 
 Site run command- cd "D:\Emon Work\Print"; npm run dev
 
-git push: Use git add -A, then git commit -m "your message", and finally git push.
+git push: Use git add -A, then git commit -m "your message", and finally git push
