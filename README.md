@@ -126,8 +126,8 @@ POST /api/v1/auth/login
 Content-Type: application/json
 
 {
-  "email": "admin@rongchapa.com",
-  "password": "ChangeMe123!"
+  "email": "Set your",
+  "password": "Set your"
 }
 ```
 
