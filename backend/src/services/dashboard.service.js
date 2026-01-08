@@ -100,6 +100,15 @@ export const getDashboardStats = async () => {
         deposit: normalizeAmount(completedPrintOrdersAggregate[0].deposit)
       }
     : { count: 0, amount: 0, deposit: 0 };
+  
+    const printRevenueTotal = roundAmount(printOverviewRaw.amount + printOverviewRaw.deposit);
+
+  const shopOverview = {
+    completed: delivered.count,
+    revenue: roundAmount(delivered.amount)
+  };
+
+  const totalRequests = ordersCount + printOrdersCount;
 
   return {
     ordersCount,
@@ -108,10 +117,12 @@ export const getDashboardStats = async () => {
     recentOrders,
     overview: {
       totalCompletedOrders: delivered.count + printOverviewRaw.count,
-      totalRevenue: roundAmount(delivered.amount + printOverviewRaw.amount),
+        totalRevenue: roundAmount(delivered.amount + printOverviewRaw.amount + printOverviewRaw.deposit),
+      totalRequests,
+      shopOrders: shopOverview,
       printOrders: {
         completed: printOverviewRaw.count,
-        revenue: roundAmount(printOverviewRaw.amount),
+          revenue: printRevenueTotal,
         deposit: roundAmount(printOverviewRaw.deposit)
       }
     },

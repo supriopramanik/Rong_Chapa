@@ -7,12 +7,14 @@ export const createPrintOrder = async (req, res) => {
     return res.status(422).json({ message: 'Validation failed', errors: errors.array() });
   }
 
-  const { collectionTime, ...rest } = req.body;
+  const { collectionTime, deliveryLocation, ...rest } = req.body;
+  const securityAmount = deliveryLocation === 'OTHER' ? 60 : 20;
   const printOrder = await PrintOrder.create({
     ...rest,
+    deliveryLocation,
     collectionTime: new Date(collectionTime),
     user: req.user.id,
-    securityAmount: 20
+    securityAmount
   });
   res.status(201).json({ message: 'Print order received', printOrder });
 };

@@ -34,6 +34,16 @@ const paperSizeLabels = {
   stamp_photo: 'Stamp Photo'
 };
 
+const formatDelivery = (order) => {
+  if (!order) return '—';
+  const location = order.deliveryLocation || '—';
+  if (location === 'OTHER') {
+    const address = order.deliveryAddress?.trim();
+    return address ? `Other: ${address}` : 'Other';
+  }
+  return location;
+};
+
 export const AdminPrintOrdersPage = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -157,7 +167,7 @@ export const AdminPrintOrdersPage = () => {
       switch (order.status) {
         case 'completed':
           acc.completed += 1;
-          acc.completedRevenue += amount;
+          acc.completedRevenue += amount + deposit;
           break;
         case 'processing':
           acc.processing += 1;
@@ -288,7 +298,7 @@ export const AdminPrintOrdersPage = () => {
                 <td>{paperSizeLabels[order.paperSize] || order.paperSize || '—'}</td>
                 <td>{order.quantity}</td>
                 <td>{formatCollectionTime(order.collectionTime)}</td>
-                <td>{order.deliveryLocation || '—'}</td>
+                <td>{formatDelivery(order)}</td>
                 <td>{order.paymentTransaction || '—'}</td>
                 <td>
                   {order.user ? (

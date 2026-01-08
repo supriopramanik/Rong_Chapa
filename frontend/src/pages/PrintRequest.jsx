@@ -5,10 +5,20 @@ import { printService } from '../services/printService.js';
 import './PrintRequest.css';
 
 const COLLECTION_SLOT_DAYS = 5;
-const COLLECTION_SHIFTS = [
-  { hour: 10, minute: 0 },
-  { hour: 16, minute: 0 }
-];
+
+const COLLECTION_WINDOWS = {
+  // Friday
+  5: [
+    { startHour: 8, startMinute: 0, endHour: 12, endMinute: 0 },
+    { startHour: 16, startMinute: 0, endHour: 17, endMinute: 0 }
+  ],
+  // Saturday
+  6: [{ startHour: 13, startMinute: 30, endHour: 17, endMinute: 30 }]
+};
+
+const DEFAULT_COLLECTION_WINDOWS = [{ startHour: 13, startMinute: 0, endHour: 14, endMinute: 0 }];
+
+const DELIVERY_CHARGE_OTHER = 60;
 
 const PAPER_SIZE_OPTIONS = [
   { value: 'a4', label: 'A4' },
@@ -34,22 +44,37 @@ const generateCollectionSlots = (days = COLLECTION_SLOT_DAYS) => {
   const now = new Date();
 
   for (let dayIndex = 0; dayIndex < days; dayIndex += 1) {
-    COLLECTION_SHIFTS.forEach(({ hour, minute }) => {
-      const slotDate = new Date();
-      slotDate.setHours(0, 0, 0, 0);
-      slotDate.setDate(slotDate.getDate() + dayIndex);
-      slotDate.setHours(hour, minute, 0, 0);
+    const dayStart = new Date();
+    dayStart.setHours(0, 0, 0, 0);
+    dayStart.setDate(dayStart.getDate() + dayIndex);
 
-      if (slotDate > now) {
+    const dayOfWeek = dayStart.getDay();
+    const windows = COLLECTION_WINDOWS[dayOfWeek] || DEFAULT_COLLECTION_WINDOWS;
+
+    windows.forEach(({ startHour, startMinute, endHour, endMinute }) => {
+      const slotStart = new Date(dayStart);
+      slotStart.setHours(startHour, startMinute, 0, 0);
+
+      const slotEnd = new Date(dayStart);
+      slotEnd.setHours(endHour, endMinute, 0, 0);
+
+      if (slotStart > now) {
+        const startLabel = slotStart.toLocaleString(undefined, {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit'
+        });
+
+        const endLabel = slotEnd.toLocaleString(undefined, {
+          hour: 'numeric',
+          minute: '2-digit'
+        });
+
         slots.push({
-          value: slotDate.toISOString(),
-          label: slotDate.toLocaleString(undefined, {
-            weekday: 'short',
-            month: 'short',
-            day: 'numeric',
-            hour: 'numeric',
-            minute: '2-digit'
-          })
+          value: slotStart.toISOString(),
+          label: `${startLabel} - ${endLabel}`
         });
       }
     });
@@ -67,6 +92,7 @@ const createInitialFormState = (slots) => ({
   quantity: 1,
   collectionTime: slots[0]?.value || '',
   deliveryLocation: 'SEU',
+  deliveryAddress: '',
   paymentTransaction: ''
 });
 
@@ -79,7 +105,7 @@ export const PrintRequestPage = () => {
   const [estimate, setEstimate] = useState(null);
 
   const updateEstimate = (nextData) => {
-    const { colorMode, sides, quantity } = nextData;
+    const { colorMode, sides, quantity, deliveryLocation } = nextData;
     const rate = RATE_TABLE?.[colorMode]?.[sides];
     if (!rate) {
       setEstimate(null);
@@ -92,7 +118,9 @@ export const PrintRequestPage = () => {
       return;
     }
 
-    setEstimate(rate * qtyNumber);
+    const deliveryCharge = deliveryLocation === 'OTHER' ? DELIVERY_CHARGE_OTHER : 0;
+
+    setEstimate(rate * qtyNumber + deliveryCharge);
   };
 
   useEffect(() => {
@@ -101,6 +129,7 @@ export const PrintRequestPage = () => {
   }, []);
 
   const hasCollectionSlots = collectionSlots.length > 0;
+  const isOtherLocation = form.deliveryLocation === 'OTHER';
   const submitLabel = !isAuthenticated
     ? 'Sign in to submit'
     : !hasCollectionSlots
@@ -125,6 +154,13 @@ export const PrintRequestPage = () => {
       setStatus({ type: 'error', message: 'Please sign in to submit your custom request.' });
       return;
     }
+
+    const paymentTx = (form.paymentTransaction || '').trim();
+    if (!paymentTx) {
+      setStatus({ type: 'error', message: 'Please provide the security payment transaction number.' });
+      return;
+    }
+
     setSubmitting(true);
     setStatus({ type: '', message: '' });
 
@@ -138,7 +174,8 @@ export const PrintRequestPage = () => {
         quantity: Number(form.quantity),
         collectionTime: form.collectionTime,
         deliveryLocation: form.deliveryLocation,
-        paymentTransaction: form.paymentTransaction
+        deliveryAddress: form.deliveryLocation === 'OTHER' ? form.deliveryAddress : '',
+        paymentTransaction: paymentTx
       });
       const resetState = createInitialFormState(collectionSlots);
       setForm(resetState);
@@ -188,7 +225,7 @@ export const PrintRequestPage = () => {
           <article>
             <h3>Extra Services</h3>
             <ul>
-              <li><strong>Lamination:</strong> starts at 12tk per sheet</li>
+              <li><strong>Passport size & Stamp size photo:</strong> starts at 60tk per sheet</li>
               <li><strong>Urgent queue:</strong> add 20% rush fee</li>
             </ul>
           </article>
@@ -285,6 +322,9 @@ export const PrintRequestPage = () => {
                   <option value="">No slots available</option>
                 )}
               </select>
+              <p className="print-request__note">
+                These slots include free delivery. Choosing any other time may require an extra delivery charge.
+              </p>
             </label>
 
             <label>
@@ -292,8 +332,25 @@ export const PrintRequestPage = () => {
               <select name="deliveryLocation" value={form.deliveryLocation} onChange={handleChange} required>
                 <option value="SEU">SEU</option>
                 <option value="AUST">AUST</option>
+                <option value="OTHER">Other location (+60 tk delivery)</option>
               </select>
+              <p className="print-request__note">
+                SEU/AUST within the listed collection slots are free delivery.
+              </p>
             </label>
+
+            {isOtherLocation && (
+              <label>
+                Delivery address (Advance 60tk charge for other locations. For other locations, security payment not mendatory)
+                <input
+                  name="deliveryAddress"
+                  value={form.deliveryAddress}
+                  onChange={handleChange}
+                  placeholder="Full delivery address"
+                  required={isOtherLocation}
+                />
+              </label>
+            )}
 
             <label className="print-request__payment">
               <div className="print-request__label-row">
@@ -311,6 +368,7 @@ export const PrintRequestPage = () => {
                 value={form.paymentTransaction}
                 onChange={handleChange}
                 placeholder="Bkash/Nagad transaction number"
+                required
               />
             </label>
           </div>

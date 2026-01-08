@@ -50,14 +50,19 @@ export const AdminDashboardPage = () => {
   const breakdown = stats.breakdown || {};
   const overview = stats.overview || { totalCompletedOrders: 0, totalRevenue: 0, printOrders: { completed: 0, revenue: 0 } };
   const printOverview = overview.printOrders || { completed: 0, revenue: 0 };
+  const shopOverview = overview.shopOrders || { completed: 0, revenue: 0 };
+  const totalRequests = overview.totalRequests || 0;
   const totalJobs = Number(stats.ordersCount || 0) + Number(stats.printOrdersCount || 0);
   const completionProgress = totalJobs > 0 ? Number(((overview.totalCompletedOrders / totalJobs) * 100).toFixed(2)) : 0;
 
   const summaryCards = [
+    { label: 'Total Requests (All)', value: totalRequests, formatter: formatNumber },
     { label: 'Total Orders', value: stats.ordersCount, formatter: formatNumber },
     { label: 'Custom Print Requests', value: stats.printOrdersCount, formatter: formatNumber },
     { label: 'Cancelled Orders', value: stats.cancelledOrdersCount, formatter: formatNumber },
-    { label: 'Print Revenue', value: printOverview.revenue, formatter: formatAmount }
+    { label: 'Shop Revenue', value: shopOverview.revenue, formatter: formatAmount },
+    { label: 'Print Revenue', value: printOverview.revenue, formatter: formatAmount },
+    { label: 'Total Revenue (All)', value: overview.totalRevenue, formatter: formatAmount }
   ];
 
   

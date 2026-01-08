@@ -4,6 +4,23 @@ import './ShopOrders.css';
 
 const statusOptions = ['pending', 'processing', 'completed', 'cancelled'];
 
+const statusCards = [
+  { key: 'completed', label: 'Completed', accent: 'success' },
+  { key: 'pending', label: 'Pending', accent: 'accent' },
+  { key: 'processing', label: 'Processing', accent: 'warning' },
+  { key: 'cancelled', label: 'Cancelled', accent: 'danger' }
+];
+
+const formatNumber = (value) => {
+  const numeric = Number(value) || 0;
+  return numeric.toLocaleString('en-US');
+};
+
+const formatAmount = (value) => {
+  const numeric = Number(value) || 0;
+  return `Tk ${numeric.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+};
+
 const formatDateTime = (value) => {
   if (!value) return '—';
   return new Date(value).toLocaleString();
@@ -24,6 +41,24 @@ export const AdminShopOrdersPage = () => {
   const [billingSaving, setBillingSaving] = useState(false);
   const [cancelNotes, setCancelNotes] = useState({});
   const [cancelActionId, setCancelActionId] = useState('');
+
+  const stats = orders.reduce(
+    (acc, order) => {
+      acc.total += 1;
+      const amount = typeof order.billing?.amount === 'number' && !Number.isNaN(order.billing.amount) ? order.billing.amount : 0;
+      acc.totalBilled += amount;
+
+      if (order.status && acc[order.status] !== undefined) {
+        acc[order.status] += 1;
+      }
+
+      return acc;
+    },
+    { total: 0, pending: 0, processing: 0, completed: 0, cancelled: 0, totalBilled: 0 }
+  );
+
+  const completionProgress = stats.total > 0 ? Number(((stats.completed / stats.total) * 100).toFixed(2)) : 0;
+  const totalValue = stats.totalBilled;
 
   const loadOrders = useCallback(async (silent = false) => {
     try {
@@ -321,6 +356,36 @@ export const AdminShopOrdersPage = () => {
         <h2>Shop Orders</h2>
         <p>Review storefront purchases, update their status, and hand customers a clean invoice.</p>
       </header>
+
+      <section className="shop-orders__overview">
+        <div className="shop-orders__overview-card">
+          <div className="shop-orders__progress" style={{ '--progress-value': completionProgress }}>
+            <div className="shop-orders__progress-inner">
+              <span className="shop-orders__progress-label">Total Value</span>
+              <strong className="shop-orders__progress-amount">{formatAmount(totalValue)}</strong>
+              <span className="shop-orders__progress-orders">{formatNumber(stats.total)} Requests</span>
+            </div>
+          </div>
+
+          <div className="shop-orders__status-grid">
+            {statusCards.map((card) => {
+              const count = stats[card.key] || 0;
+              const percentage = stats.total > 0 ? Math.round((count / stats.total) * 100) : 0;
+
+              return (
+                <article key={card.key} className={`shop-orders__status-card shop-orders__status-card--${card.accent}`}>
+                  <span className="shop-orders__status-accent" aria-hidden="true" />
+                  <div className="shop-orders__status-meta">
+                    <span>{card.label}</span>
+                    <strong>{formatNumber(count)}</strong>
+                  </div>
+                  <p>{percentage}% of requests</p>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
 
       <section className="shop-orders__card">
         <div className="shop-orders__toolbar">

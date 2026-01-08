@@ -18,7 +18,7 @@ const aboutSections = [
     title: 'Our Goal',
     intro: [
       'Our goal is to provide affordable print services for students while bringing printing into a smarter and more modern system.',
-      'We aim to modernize every step of the print journey with convenient, student-friendly workflows.'
+      'We aim to modernize every step of the print journey with convenient, student-endly workflows.'
     ],
     highlights: [
       'Reduce printing costs for students',

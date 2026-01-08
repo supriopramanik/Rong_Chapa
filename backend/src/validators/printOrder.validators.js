@@ -13,9 +13,21 @@ export const createPrintOrderValidator = [
     .isISO8601()
     .withMessage('Select a valid collection time slot'),
   body('deliveryLocation')
-    .isIn(['SEU', 'AUST'])
+    .isIn(['SEU', 'AUST', 'OTHER'])
     .withMessage('Delivery location is required'),
-  body('paymentTransaction').optional().isString().trim()
+  body('deliveryAddress')
+    .custom((value, { req }) => {
+      if (req.body.deliveryLocation === 'OTHER') {
+        return typeof value === 'string' && value.trim().length > 0;
+      }
+      return true;
+    })
+    .withMessage('Delivery address is required for other locations'),
+  body('paymentTransaction')
+    .isString()
+    .trim()
+    .notEmpty()
+    .withMessage('Security payment transaction is required')
 ];
 
 export const updatePrintOrderStatusValidator = [
