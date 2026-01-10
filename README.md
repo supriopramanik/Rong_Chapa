@@ -46,7 +46,7 @@ README.md
   ```bash
   npm run dev
   ```
-3. The backend runs on `https://rong-chapa.onrender.com` and the frontend on `http://localhost:5173` with live reloads.
+3. The backend runs on `https://rong-chapa.onrender.com` and the frontend on `https://rong-chapa.netlify.app` with live reloads.
 
 > Tip: use separate terminals if you want to run just one side — `npm run dev:backend` or `npm run dev:frontend` from the root.
 
@@ -57,17 +57,18 @@ README.md
    cd backend
    npm install
    ```
-2. Copy `.env.example` to `.env` and configure values:
-   ```bash
-   cp .env.example .env
-   ```
-   Required variables:
-   - `PORT` – API port (default 4000)
-   - `MONGODB_URI` – MongoDB Atlas connection string
-   - `JWT_SECRET` – strong secret for token signing
-   - `JWT_EXPIRES_IN` – token lifetime (e.g., `12h`)
+2. Copy `.env.example` to `.env` and configure values for local development:
+  ```bash
+  cp .env.example .env
+  ```
+  Required variables for local builds:
+  - `PORT` – API port (default 4000)
+  - `MONGODB_URI` – MongoDB Atlas connection string
+  - `JWT_SECRET` – strong secret for token signing
+  - `JWT_EXPIRES_IN` – token lifetime (e.g., `12h`)
   - `CLIENT_URL` – comma-separated frontend origins (e.g., `http://localhost:5173,https://rong-chapa.netlify.app,https://rong-chapa.onrender.com`)
-   - `ADMIN_EMAIL` / `ADMIN_PASSWORD` – seeded admin credentials
+  - `ADMIN_EMAIL` / `ADMIN_PASSWORD` – seeded admin credentials
+  > **Note:** Production builds on Render should *not* rely on a `.env` file stored in the repo. Instead, configure the same variables directly in the Render dashboard (Render injects them at runtime), and keep `.env` ignored locally so secrets never land in source control.
 3. Start the development server:
    ```bash
    npm run dev
