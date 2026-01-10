@@ -8,7 +8,7 @@ import { sanitizeUser } from '../utils/sanitizeUser.js';
 
 const DELIVERY_RATES = {
   dhaka: 60,
-  outside: 110
+  Outside: 110
 };
 
 const resolveDeliveryCharge = (zone) => {
@@ -268,154 +268,129 @@ export const updateOrderBilling = async (req, res) => {
 };
 
 export const downloadOrderInvoice = async (req, res) => {
-  const { id } = req.params;
+  try {
+    const { id } = req.params;
 
-  const order = await Order.findById(id)
-    .populate('product', 'name basePrice sku')
-    .populate('user', 'name email phone');
+    // Load primary order to get customer + grouping info
+    const primaryOrder = await Order.findById(id)
+      .populate('product', 'name basePrice sku')
+      .populate('user', 'name email phone');
 
-  if (!order) {
-    return res.status(404).json({ message: 'Order not found' });
-  }
+    if (!primaryOrder) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
 
-  const doc = new PDFDocument({ size: 'A4', margin: 40 });
-  const fileName = `invoice-${order.billing?.number || order._id}.pdf`;
+    // Find all orders in the same batch/invoice so every product appears
+    const groupFilter = primaryOrder.batchId
+      ? { batchId: primaryOrder.batchId }
+      : primaryOrder.billing?.number
+        ? { 'billing.number': primaryOrder.billing.number }
+        : { _id: primaryOrder._id };
 
-  res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    const orders = await Order.find(groupFilter)
+      .sort({ createdAt: 1 })
+      .populate('product', 'name basePrice sku');
 
-  doc.pipe(res);
+    const doc = new PDFDocument({ size: 'A4', margin: 40 });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="invoice.pdf"`);
+    doc.pipe(res);
 
-  const brandColor = '#8b5a2b';
-  const textColor = '#111827';
-  const subtleRow = '#fcf5ee';
+    // Header section
+    doc.font('Helvetica-Bold').fontSize(22).text('Rong Chapa Invoice', { align: 'center' });
+    doc.moveDown(1.5);
 
-  const unitPrice = Number(order.product?.basePrice || 0);
-  const lineTotal = Number((unitPrice * order.quantity).toFixed(2));
-  const deliveryCharge = order.deliveryCharge || 0;
-  const totalDue = order.billing?.amount ?? Number((lineTotal + deliveryCharge).toFixed(2));
+    // Customer and Invoice metadata
+    doc.fontSize(10).font('Helvetica').fillColor('#333333');
+    doc.text(`Invoice #: ${primaryOrder.billing?.number || primaryOrder._id}`);
+    doc.text(`Date: ${new Date().toLocaleDateString('en-GB')}`);
+    doc.text(`Status: ${primaryOrder.status}`);
 
-  // Header
-  doc
-    .font('Helvetica-Bold')
-    .fillColor(brandColor)
-    .fontSize(26)
-    .text('RONG CHAPA', { align: 'center' });
+    doc.moveDown(1);
+    doc.font('Helvetica-Bold').text('Customer Details:');
+    doc.font('Helvetica').text(`Name: ${primaryOrder.customerName || 'N/A'}`);
+    doc.text(`Phone: ${primaryOrder.customerPhone || 'N/A'}`);
+    doc.text(`Address: ${primaryOrder.shippingAddress || 'N/A'}`);
 
-  doc
-    .fontSize(16)
-    .fillColor(textColor)
-    .moveDown(0.4)
-    .text('Order Invoice', { align: 'center' });
+    // Order Table Header
+    doc.moveDown(2);
+    const tableTop = doc.y;
+    doc.rect(40, tableTop, 515, 20).fill('#f3f4f6');
+    doc.fillColor('#000000').font('Helvetica-Bold');
+    doc.text('Product', 50, tableTop + 6);
+    doc.text('Qty', 300, tableTop + 6, { width: 50, align: 'center' });
+    doc.text('Unit Price', 360, tableTop + 6, { width: 80, align: 'center' });
+    doc.text('Total', 450, tableTop + 6, { width: 90, align: 'center' });
 
-  doc.moveDown(1);
+    // Table rows for all orders in the batch
+    let currentY = tableTop + 25;
+    let itemsSubtotal = 0;
 
-  // Order meta block
-  doc.font('Helvetica').fontSize(11).fillColor(textColor);
-  doc.text(`Order ID: ${order.billing?.number || order._id}`);
-  doc.text(`Status: ${order.status}`);
-  doc.text(`Customer: ${order.customerName} (${order.customerEmail || 'N/A'})`);
-  doc.text(`Address: ${order.shippingAddress}`);
-  doc.text(`Phone: ${order.customerPhone || 'N/A'}`);
-  doc.text(`Total: ${formatCurrency(totalDue)}`);
-  doc.moveDown(1);
+    orders.forEach((order) => {
+      if (!order.product) return;
 
-  // Items table
-  const tableTop = doc.y + 4;
-  const tableLeft = doc.page.margins.left;
-  const tableRight = doc.page.width - doc.page.margins.right;
-  const colItem = 320;
-  const colQty = 60;
-  const colPrice = 80;
-  const colTotal = 80;
+      const name = order.product.name || 'Product';
+      const qty = order.quantity || 1;
+      const price = Number(order.product.basePrice || 0);
+      const lineTotal = price * qty;
+      itemsSubtotal += lineTotal;
 
-  const headerHeight = 20;
-  doc
-    .save()
-    .rect(tableLeft, tableTop, tableRight - tableLeft, headerHeight)
-    .fill(brandColor)
-    .restore();
+      doc.font('Helvetica').fontSize(10);
+      doc.text(name, 50, currentY, { width: 240 });
+      doc.text(String(qty), 300, currentY, { width: 50, align: 'center' });
+      doc.text(`Tk ${price.toFixed(2)}`, 360, currentY, { width: 80, align: 'center' });
+      doc.text(`Tk ${lineTotal.toFixed(2)}`, 450, currentY, { width: 90, align: 'center' });
 
-  doc
-    .fillColor('#ffffff')
-    .font('Helvetica-Bold')
-    .fontSize(11)
-    .text('Item', tableLeft + 8, tableTop + 5, { width: colItem - 8 })
-    .text('Qty', tableLeft + colItem, tableTop + 5, { width: colQty, align: 'center' })
-    .text('Price', tableLeft + colItem + colQty, tableTop + 5, { width: colPrice, align: 'right' })
-    .text('Total', tableLeft + colItem + colQty + colPrice, tableTop + 5, {
-      width: colTotal,
-      align: 'right'
+      currentY += 20;
     });
 
-  const rowTop = tableTop + headerHeight;
-  const rowHeight = 22;
+    // Delivery charge: prefer explicit positive value; otherwise derive from zone
+    let deliveryCharge = 0;
+    if (
+      typeof primaryOrder.deliveryCharge === 'number' &&
+      !Number.isNaN(primaryOrder.deliveryCharge) &&
+      primaryOrder.deliveryCharge > 0
+    ) {
+      deliveryCharge = primaryOrder.deliveryCharge;
+    } else {
+      const { charge } = resolveDeliveryCharge(primaryOrder.deliveryZone);
+      deliveryCharge = charge;
+    }
 
-  doc
-    .save()
-    .rect(tableLeft, rowTop, tableRight - tableLeft, rowHeight)
-    .fill(subtleRow)
-    .restore();
+    const totalDue =
+      typeof primaryOrder.billing?.amount === 'number' && !Number.isNaN(primaryOrder.billing.amount)
+        ? primaryOrder.billing.amount
+        : itemsSubtotal + deliveryCharge;
 
-  const productLabel = order.product?.name || 'Custom item';
-  const details = [];
-  if (order.size) details.push(`Size: ${order.size}`);
-  if (order.paperType) details.push(`Paper: ${order.paperType}`);
-  if (order.notes) details.push(order.notes);
-  const itemText = details.length ? `${productLabel} — ${details.join(' · ')}` : productLabel;
+    // Delivery & Billing Box (Right Aligned)
+    const boxX = 340;
+    const boxY = currentY + 30;
+    const boxWidth = 215;
 
-  const bodyY = rowTop + 5;
-  doc
-    .font('Helvetica')
-    .fontSize(10)
-    .fillColor(textColor)
-    .text(itemText, tableLeft + 8, bodyY, { width: colItem - 8 })
-    .text(String(order.quantity), tableLeft + colItem, bodyY, { width: colQty, align: 'center' })
-    .text(formatCurrency(unitPrice), tableLeft + colItem + colQty, bodyY, {
-      width: colPrice,
-      align: 'right'
-    })
-    .text(formatCurrency(lineTotal), tableLeft + colItem + colQty + colPrice, bodyY, {
-      width: colTotal,
-      align: 'right'
-    });
+    doc.rect(boxX, boxY, boxWidth, 115).strokeColor('#e5e7eb').stroke();
 
-  // Totals under table
-  const totalsTop = rowTop + rowHeight + 10;
-  doc
-    .moveTo(tableLeft, totalsTop)
-    .lineTo(tableRight, totalsTop)
-    .strokeColor('#e5e7eb')
-    .stroke();
+    // Delivery Details
+    doc.font('Helvetica-Bold').fontSize(10).text('Delivery Info', boxX + 10, boxY + 10);
+    doc.font('Helvetica').fontSize(9);
+    doc.text(`Zone: ${primaryOrder.deliveryZone || 'dhaka'}`, boxX + 10, boxY + 25);
+    doc.text(`Charge: Tk ${deliveryCharge.toFixed(2)}`, boxX + 10, boxY + 35);
 
-  const labelX = tableLeft + colItem + colQty;
-  const valueX = tableRight;
+    // Billing Details
+    doc.font('Helvetica-Bold').fontSize(10).text('Payment Summary', boxX + 10, boxY + 60);
+    doc.font('Helvetica').fontSize(9);
+    doc.text(`Subtotal: Tk ${itemsSubtotal.toFixed(2)}`, boxX + 10, boxY + 75);
+    doc.text(`Total Due: Tk ${totalDue.toFixed(2)}`, boxX + 10, boxY + 88, { underline: true });
+    doc.text(`Notes: ${primaryOrder.billing?.notes || 'N/A'}`, boxX + 10, boxY + 100);
 
-  const writeTotalLine = (label, value, bold = false) => {
-    doc
-      .font(bold ? 'Helvetica-Bold' : 'Helvetica')
-      .fontSize(11)
-      .fillColor(textColor)
-      .text(label, labelX, doc.y + 4, { width: colPrice, align: 'right', continued: true })
-      .text(value, valueX, doc.y, { width: colTotal, align: 'right' });
-  };
-
-  doc.moveDown(0.2);
-  writeTotalLine('Subtotal', formatCurrency(lineTotal));
-  doc.moveDown(0.1);
-  writeTotalLine('Delivery', formatCurrency(deliveryCharge));
-  doc.moveDown(0.1);
-  writeTotalLine('Total', formatCurrency(totalDue), true);
-
-  // Footer
-  doc.moveDown(3);
-  doc
-    .font('Helvetica')
-    .fontSize(10)
-    .fillColor('#4b5563')
-    .text('Thank you for your order! We hope you enjoy your prints.', {
+    // Footer
+    doc.moveDown(8);
+    doc.font('Helvetica').fontSize(10).fillColor('#666666').text('Thank you for choosing Rong Chapa!', {
       align: 'center'
     });
 
-  doc.end();
+    doc.end();
+  } catch (error) {
+    console.error('PDF Error:', error);
+    res.status(500).json({ message: 'Failed to generate PDF', error: error.message });
+  }
 };
