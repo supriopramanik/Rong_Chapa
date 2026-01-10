@@ -110,29 +110,100 @@
   cursor: pointer;
 }
 
-.shop__modal-items {
-  list-style: none;
-  padding: 0;
+.shop__modal-items-table {
+  width: 100%;
+  border-collapse: collapse;
   margin: 0;
-  display: grid;
-  gap: 0.9rem;
+  font-size: 0.95rem;
 }
 
-.shop__modal-items li {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 1rem;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: var(--radius-md);
+.shop__modal-items-table th,
+.shop__modal-items-table td {
+  padding: 0.75rem 0.5rem;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.shop__modal-items-table thead th {
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 2px solid rgba(15, 23, 42, 0.2);
+}
+
+.shop__modal-items-table tbody tr {
   background: #f8fafc;
 }
 
-.shop__modal-items span {
-  color: var(--text-muted);
-  font-size: 0.9rem;
+.shop__modal-items-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
+.shop__modal-items-table td strong {
+  color: var(--brand-dark);
+  display: inline-block;
+}
+
+.shop__modal-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 6px;
+}
+
+.shop__modal-item-thumb {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-md);
+  background-color: rgba(15, 23, 42, 0.08);
+  background-size: cover;
+  background-position: center;
+}
+
+.shop__modal-item-thumb--placeholder {
+  border: 1px dashed rgba(15, 23, 42, 0.3);
+}
+
+.shop__modal-item-meta strong {
+  display: block;
+  font-size: 1rem;
+}
+
+.shop__modal-item-quantity {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: var(--radius-sm);
+  padding: 0.25rem 0.6rem;
+  border: 1px solid rgba(15, 23, 42, 0.15);
+  background: rgba(15, 23, 42, 0.05);
+}
+
+.shop__modal-item-quantity button {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--brand-dark);
+  font-size: 1rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shop__modal-item-quantity button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.shop__modal-item-quantity span {
+  min-width: 2.25rem;
+  text-align: center;
+  font-weight: 600;
+  color: var(--brand-dark);
+}
 
 .shop__modal-price {
   font-size: 1.2rem;

@@ -16,6 +16,43 @@
   color: var(--text-muted);
 }
 
+.dashboard__submenu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  background: #ffffff;
+  padding: 1rem;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 25px 60px rgba(15, 23, 42, 0.08);
+}
+
+.dashboard__submenu-button {
+  border: 1px solid var(--brand-button);
+  background: rgba(249, 115, 22, 0.08);
+  padding: 0.65rem 1.25rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  color: var(--brand-button);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dashboard__submenu-button:hover {
+  border-color: var(--brand-button);
+}
+
+.dashboard__submenu-button--active {
+  background: var(--brand-button);
+  color: #fff;
+  border-color: var(--brand-button);
+  box-shadow: 0 15px 35px rgba(15, 23, 42, 0.15);
+}
+
+.dashboard__submenu-button:focus-visible {
+  outline: 2px solid var(--brand-secondary);
+  outline-offset: 2px;
+}
+
 .dashboard__summary {
   display: grid;
   gap: 1rem;
@@ -157,8 +194,8 @@
 .dashboard__profile-actions button {
   border: none;
   border-radius: 9999px;
-  background: linear-gradient(135deg, var(--brand-secondary), var(--brand-accent));
-  color: #0f172a;
+  background: var(--brand-button);
+  color: #fff;
   padding: 0.75rem 1.5rem;
   font-weight: 600;
   cursor: pointer;
@@ -197,6 +234,101 @@
   gap: 1.5rem;
 }
 
+.dashboard__shop-list {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.dashboard__shop-card {
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  background: #f8fafc;
+  display: grid;
+  gap: 1rem;
+}
+
+.dashboard__shop-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.dashboard__shop-card-subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.dashboard__shop-card-meta {
+  margin: 0.2rem 0 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.dashboard__shop-card-products {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.dashboard__shop-card-product {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.dashboard__shop-card-product-info {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.dashboard__shop-card-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background-size: cover;
+  background-position: center;
+  background-color: rgba(148, 163, 184, 0.2);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+}
+
+.dashboard__shop-card-thumb--placeholder {
+  border: 1px dashed rgba(15, 23, 42, 0.2);
+}
+
+.dashboard__shop-card-product:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.dashboard__shop-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: #475569;
+}
+
+.dashboard__shop-card-product-meta {
+  display: grid;
+  gap: 0.35rem;
+  text-align: right;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.dashboard__shop-card-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
 .dashboard__orders-head {
   display: flex;
   justify-content: space-between;
@@ -215,8 +347,8 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: linear-gradient(135deg, var(--brand-secondary), var(--brand-accent));
-  color: #0f172a;
+  background: var(--brand-button);
+  color: #fff;
   border-radius: 9999px;
   padding: 0.65rem 1.3rem;
   font-weight: 600;
@@ -280,6 +412,31 @@
   font-size: 0.85rem;
 }
 
+.dashboard__request--with-image {
+  grid-auto-flow: column;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.dashboard__request-thumb {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-md);
+  background: rgba(148, 163, 184, 0.2);
+  background-size: cover;
+  background-position: center;
+}
+
+.dashboard__request-thumb--placeholder {
+  border: 1px dashed rgba(148, 163, 184, 0.4);
+}
+
+.dashboard__request--with-image > div {
+  display: grid;
+  gap: 0.25rem;
+}
+
 .dashboard__billing {
   display: grid;
   gap: 0.25rem;
@@ -338,9 +495,9 @@
 }
 
 .dashboard__ghost-btn {
-  border: 1px dashed rgba(15, 23, 42, 0.25);
+  border: 1px dashed var(--brand-button);
   background: transparent;
-  color: var(--brand-dark);
+  color: var(--brand-button);
   padding: 0.4rem 0.75rem;
   border-radius: 9999px;
   font-size: 0.85rem;
@@ -349,8 +506,8 @@
 }
 
 .dashboard__ghost-btn:hover {
-  border-color: var(--brand-secondary);
-  color: var(--brand-secondary);
+  border-color: var(--brand-button);
+  color: var(--brand-button);
 }
 
 .dashboard__cancel-note {
@@ -449,8 +606,8 @@
 }
 
 .dashboard__modal-actions button[type='submit'] {
-  background: linear-gradient(135deg, var(--brand-secondary), var(--brand-accent));
-  color: #0f172a;
+  background: var(--brand-button);
+  color: #fff;
 }
 
 @media (max-width: 640px) {

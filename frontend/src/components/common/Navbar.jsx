@@ -79,7 +79,7 @@ export const Navbar = () => {
           </NavLink>
           {isCustomer && (
             <NavLink to="/dashboard" onClick={close}>
-              My Orders
+              My Profile
             </NavLink>
           )}
           <div className="navbar__cart">
@@ -113,28 +113,44 @@ export const Navbar = () => {
                     <ul className="navbar__cart-list">
                       {cartItems.map((item) => (
                         <li key={item.product._id}>
-                          <div>
-                            <strong>{item.product.name}</strong>
-                            <span>
-                              ৳{Number(item.product.basePrice || 0).toFixed(2)} × {item.quantity}
-                            </span>
+                          <div
+                            className="navbar__cart-thumb"
+                            aria-label={`Thumbnail for ${item.product.name}`}
+                          >
+                            {item.product.imageUrl ? (
+                              <img
+                                src={item.product.imageUrl}
+                                alt={`Thumbnail of ${item.product.name}`}
+                                loading="lazy"
+                              />
+                            ) : (
+                              <span className="navbar__cart-thumb-fallback" />
+                            )}
                           </div>
-                          <div className="navbar__cart-controls">
-                            <button
-                              type="button"
-                              onClick={() => updateQuantity(item.product._id, -1)}
-                              aria-label={`Decrease ${item.product.name} quantity`}
-                            >
-                              -
-                            </button>
-                            <span>{item.quantity}</span>
-                            <button
-                              type="button"
-                              onClick={() => updateQuantity(item.product._id, 1)}
-                              aria-label={`Increase ${item.product.name} quantity`}
-                            >
-                              +
-                            </button>
+                          <div className="navbar__cart-details">
+                            <div>
+                              <strong>{item.product.name}</strong>
+                              <span>
+                                ৳{Number(item.product.basePrice || 0).toFixed(2)} × {item.quantity}
+                              </span>
+                            </div>
+                            <div className="navbar__cart-controls">
+                              <button
+                                type="button"
+                                onClick={() => updateQuantity(item.product._id, -1)}
+                                aria-label={`Decrease ${item.product.name} quantity`}
+                              >
+                                -
+                              </button>
+                              <span>{item.quantity}</span>
+                              <button
+                                type="button"
+                                onClick={() => updateQuantity(item.product._id, 1)}
+                                aria-label={`Increase ${item.product.name} quantity`}
+                              >
+                                +
+                              </button>
+                            </div>
                           </div>
                           <button
                             type="button"

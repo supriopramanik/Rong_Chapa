@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { printService } from '../services/printService.js';
@@ -36,6 +36,13 @@ const formatCurrency = (value) => {
   return `Tk ${value.toFixed(2)}`;
 };
 
+const getShopOrderGroupId = (order) => order.batchId || order.billing?.number || order._id;
+
+const DASHBOARD_TABS = [
+  { id: 'profile', label: 'Profile settings' },
+  { id: 'orders', label: 'Order progress' }
+];
+
 export const UserDashboardPage = () => {
   const { user, updateProfile: updateProfileAction } = useAuth();
   const [printOrders, setPrintOrders] = useState([]);
@@ -59,6 +66,7 @@ export const UserDashboardPage = () => {
   const [cancelSubmitting, setCancelSubmitting] = useState(false);
   const [cancelError, setCancelError] = useState('');
   const [cancelAlert, setCancelAlert] = useState({ type: '', text: '' });
+  const [activeTab, setActiveTab] = useState(DASHBOARD_TABS[0].id);
 
   useEffect(() => {
     setProfileForm((prev) => ({
@@ -188,6 +196,18 @@ export const UserDashboardPage = () => {
     return order.cancelRequest?.status !== 'pending';
   };
 
+  const groupedShopOrders = useMemo(() => {
+    const map = new Map();
+    shopOrders.forEach((order) => {
+      const key = getShopOrderGroupId(order);
+      if (!map.has(key)) {
+        map.set(key, { id: key, orders: [] });
+      }
+      map.get(key).orders.push(order);
+    });
+    return Array.from(map.values());
+  }, [shopOrders]);
+
   const openCancelModal = (order) => {
     if (!order) return;
     setCancelModal({ open: true, order, reason: '' });
@@ -225,6 +245,10 @@ export const UserDashboardPage = () => {
     }
   };
 
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+  };
+
   return (
     <div className="dashboard">
       <header className="dashboard__header">
@@ -232,7 +256,22 @@ export const UserDashboardPage = () => {
         <p>Track both your custom print requests and shop purchases in one place.</p>
       </header>
 
-      <section className="dashboard__profile">
+      <section className="dashboard__submenu" aria-label="Dashboard navigation">
+        {DASHBOARD_TABS.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            className={`dashboard__submenu-button ${activeTab === tab.id ? 'dashboard__submenu-button--active' : ''}`}
+            onClick={() => handleTabChange(tab.id)}
+            aria-pressed={activeTab === tab.id}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </section>
+
+      {activeTab === 'profile' && (
+        <section className="dashboard__profile">
         <div className="dashboard__profile-head">
           <div>
             <h2>Account details</h2>
@@ -348,9 +387,12 @@ export const UserDashboardPage = () => {
             </button>
           </div>
         </form>
-      </section>
+        </section>
+      )}
 
-      <section className="dashboard__summary">
+      {activeTab === 'orders' && (
+        <>
+          <section className="dashboard__summary">
         <div className="dashboard__metric">
           <span>Total requests</span>
           <strong>{totalOrders}</strong>
@@ -363,9 +405,9 @@ export const UserDashboardPage = () => {
           <span>Completed</span>
           <strong>{completedOrders}</strong>
         </div>
-      </section>
+          </section>
 
-      <section className="dashboard__orders">
+          <section className="dashboard__orders">
         <div className="dashboard__orders-head">
           <h2>Your custom requests</h2>
           <Link to="/print" className="dashboard__cta">
@@ -438,9 +480,9 @@ export const UserDashboardPage = () => {
             </table>
           </div>
         )}
-      </section>
+          </section>
 
-      <section className="dashboard__orders">
+          <section className="dashboard__orders">
         <div className="dashboard__orders-head">
           <h2>Your shop orders</h2>
           <Link to="/shop" className="dashboard__cta">
@@ -456,7 +498,7 @@ export const UserDashboardPage = () => {
           </div>
         )}
 
-        {!shopLoading && !shopError && shopOrders.length === 0 && (
+        {!shopLoading && !shopError && groupedShopOrders.length === 0 && (
           <div className="dashboard__empty">
             <p>You have not placed any storefront orders yet.</p>
             <Link to="/shop" className="dashboard__cta">
@@ -465,92 +507,115 @@ export const UserDashboardPage = () => {
           </div>
         )}
 
-        {!shopLoading && !shopError && shopOrders.length > 0 && (
-          <div className="dashboard__table-wrapper">
-            <table className="dashboard__table">
-              <thead>
-                <tr>
-                  <th scope="col">Order</th>
-                  <th scope="col">Placed</th>
-                  <th scope="col">Status</th>
-                  <th scope="col">Billing</th>
-                </tr>
-              </thead>
-              <tbody>
-                {shopOrders.map((order) => (
-                  <tr key={order._id}>
-                    <td>
-                      <div className="dashboard__request">
-                        <strong>{order.product?.name || 'Product removed'}</strong>
-                        <span>
-                          {order.quantity} pcs
-                          {order.size ? ` · Size: ${order.size}` : ''}
-                          {order.paperType ? ` · Paper: ${order.paperType}` : ''}
-                        </span>
-                        {order.notes && <span>Note: {order.notes}</span>}
-                      </div>
-                    </td>
-                    <td>{formatDateTime(order.createdAt)}</td>
-                    <td>
-                      <div className="dashboard__status-block">
-                        <span className={`dashboard__status dashboard__status--${order.status}`}>
-                          {STATUS_LABEL[order.status] || order.status}
-                        </span>
-                        {order.cancelRequest?.status === 'pending' && (
-                          <div className="dashboard__cancel-note">
-                            <strong>Cancellation pending.</strong>
-                            <span>
-                              Requested {formatDateTime(order.cancelRequest.requestedAt)} · {order.cancelRequest.reason}
-                            </span>
+        {!shopLoading && !shopError && groupedShopOrders.length > 0 && (
+          <div className="dashboard__shop-list">
+            {groupedShopOrders.map((group) => {
+              const primary = group.orders[0];
+              const baseTotal = group.orders.reduce(
+                (sum, order) => sum + Number(order.product?.basePrice || 0) * order.quantity,
+                0
+              );
+              const deliveryTotal = group.orders.reduce(
+                (sum, order) => sum + (typeof order.deliveryCharge === 'number' ? order.deliveryCharge : 0),
+                0
+              );
+              const deliveryAmount = deliveryTotal > 0 ? deliveryTotal : primary.deliveryZone === 'outside' ? 110 : 60;
+              const totalAmount = baseTotal + deliveryAmount;
+              const billingAmount =
+                typeof primary.billing?.amount === 'number' ? primary.billing.amount : totalAmount;
+              const formattedDeliveryZone = primary.deliveryZone === 'outside' ? 'Outside Dhaka' : 'Inside Dhaka';
+              return (
+                <article key={group.id} className="dashboard__shop-card">
+                  <div className="dashboard__shop-card-header">
+                    <div>
+                      <strong>
+                        #{primary.batchId?.slice(-6) || primary._id.slice(-6)} — {primary.customerName || user?.name || 'You'}
+                      </strong>
+                      <p className="dashboard__shop-card-subtitle">
+                        {primary.shippingAddress || 'Shipping address not set'}
+                      </p>
+                      <p className="dashboard__shop-card-meta">
+                        {formatDateTime(primary.createdAt)} · Delivery: {formattedDeliveryZone} ·{' '}
+                        {formatCurrency(deliveryAmount)}
+                      </p>
+                    </div>
+                    <span className={`dashboard__status dashboard__status--${primary.status}`}>
+                      {STATUS_LABEL[primary.status] || primary.status}
+                    </span>
+                  </div>
+                  <div className="dashboard__shop-card-products">
+                    {group.orders.map((order) => (
+                      <div key={order._id} className="dashboard__shop-card-product">
+                        <div
+                          className={`dashboard__shop-card-thumb ${order.product?.imageUrl ? '' : 'dashboard__shop-card-thumb--placeholder'}`}
+                          style={order.product?.imageUrl ? { backgroundImage: `url(${order.product.imageUrl})` } : undefined}
+                          aria-hidden="true"
+                        />
+                        <div className="dashboard__shop-card-product-info">
+                          <strong>{order.product?.name || 'Product removed'}</strong>
+                          <div className="dashboard__shop-card-tags">
+                            {order.size && <span>Size: {order.size}</span>}
+                            {order.paperType && <span>Paper: {order.paperType}</span>}
+                            {order.notes && <span>Note: {order.notes}</span>}
                           </div>
-                        )}
-                        {order.cancelRequest?.status === 'approved' && (
-                          <div className="dashboard__cancel-note dashboard__cancel-note--approved">
-                            <strong>Cancellation approved.</strong>
-                            <span>
-                              {order.cancelRequest.resolvedAt ? `Closed ${formatDateTime(order.cancelRequest.resolvedAt)}.` : 'Closed.'}
-                              {order.cancelRequest.adminNote ? ` ${order.cancelRequest.adminNote}` : ''}
-                            </span>
-                          </div>
-                        )}
-                        {order.cancelRequest?.status === 'declined' && (
-                          <div className="dashboard__cancel-note dashboard__cancel-note--declined">
-                            <strong>Cancellation declined.</strong>
-                            <span>
-                              {order.cancelRequest.resolvedAt
-                                ? `Reviewed ${formatDateTime(order.cancelRequest.resolvedAt)}.`
-                                : 'Reviewed.'}
-                              {order.cancelRequest.adminNote ? ` ${order.cancelRequest.adminNote}` : ''}
-                            </span>
-                          </div>
-                        )}
-                        {canRequestCancellation(order) && (
-                          <button type="button" className="dashboard__ghost-btn" onClick={() => openCancelModal(order)}>
-                            Request cancellation
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                    <td>
-                      {order.billing?.number || typeof order.billing?.amount === 'number' ? (
-                        <div className="dashboard__billing">
-                          {order.billing?.number && <span>Invoice: {order.billing.number}</span>}
-                          {typeof order.billing?.amount === 'number' && (
-                            <span>Amount: {formatCurrency(order.billing.amount)}</span>
-                          )}
-                          {order.billing?.notes && <span>Notes: {order.billing.notes}</span>}
                         </div>
-                      ) : (
-                        <span className="dashboard__billing--empty">Pending invoice</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                        <div className="dashboard__shop-card-product-meta">
+                          <span>{order.quantity} pcs</span>
+                          <span>{formatCurrency(Number(order.product?.basePrice || 0) * order.quantity)}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="dashboard__status-block">
+                    {primary.cancelRequest?.status === 'pending' && (
+                      <div className="dashboard__cancel-note">
+                        <strong>Cancellation pending.</strong>
+                        <span>
+                          Requested {formatDateTime(primary.cancelRequest.requestedAt)} · {primary.cancelRequest.reason}
+                        </span>
+                      </div>
+                    )}
+                    {primary.cancelRequest?.status === 'approved' && (
+                      <div className="dashboard__cancel-note dashboard__cancel-note--approved">
+                        <strong>Cancellation approved.</strong>
+                        <span>
+                          {primary.cancelRequest.resolvedAt
+                            ? `Closed ${formatDateTime(primary.cancelRequest.resolvedAt)}.`
+                            : 'Closed.'}
+                          {primary.cancelRequest.adminNote ? ` ${primary.cancelRequest.adminNote}` : ''}
+                        </span>
+                      </div>
+                    )}
+                    {primary.cancelRequest?.status === 'declined' && (
+                      <div className="dashboard__cancel-note dashboard__cancel-note--declined">
+                        <strong>Cancellation declined.</strong>
+                        <span>
+                          {primary.cancelRequest.resolvedAt
+                            ? `Reviewed ${formatDateTime(primary.cancelRequest.resolvedAt)}.`
+                            : 'Reviewed.'}
+                          {primary.cancelRequest.adminNote ? ` ${primary.cancelRequest.adminNote}` : ''}
+                        </span>
+                      </div>
+                    )}
+                    {canRequestCancellation(primary) && (
+                      <button type="button" className="dashboard__ghost-btn" onClick={() => openCancelModal(primary)}>
+                        Request cancellation
+                      </button>
+                    )}
+                  </div>
+                  <div className="dashboard__shop-card-footer">
+                    {primary.billing?.number && <span>Invoice: {primary.billing.number}</span>}
+                    <span>Total: {formatCurrency(billingAmount)}</span>
+                    {primary.billing?.notes && <span>{primary.billing.notes}</span>}
+                  </div>
+                </article>
+              );
+            })}
           </div>
         )}
-      </section>
+          </section>
+        </>
+      )}
 
       {cancelModal.open && (
         <div className="dashboard__modal">

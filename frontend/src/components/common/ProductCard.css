@@ -119,6 +119,6 @@
 }
 
 .product-card__order {
-  background: linear-gradient(135deg, var(--brand-secondary), var(--brand-accent));
+  background: linear-gradient(135deg, var(--brand-secondary));
   color: #0f172a;
 }

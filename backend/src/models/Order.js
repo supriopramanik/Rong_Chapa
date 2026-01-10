@@ -14,6 +14,7 @@ const orderSchema = new mongoose.Schema(
     shippingAddress: { type: String, trim: true, required: true },
     deliveryZone: { type: String, enum: ['dhaka', 'outside'], required: true },
     deliveryCharge: { type: Number, min: 0, required: true },
+    batchId: { type: String, index: true },
     status: {
       type: String,
       enum: ['pending', 'processing', 'completed', 'cancelled'],

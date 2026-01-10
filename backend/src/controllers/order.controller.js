@@ -44,7 +44,7 @@ export const createOrder = async (req, res) => {
     return res.status(422).json({ message: 'Validation failed', errors: errors.array() });
   }
 
-  const { accountPassword, ...orderData } = req.body;
+  const { accountPassword, invoiceNumber, batchId, billingAmount, ...orderData } = req.body;
 
   if (!orderData.shippingAddress) {
     return res.status(422).json({ message: 'Delivery address is required.' });
@@ -52,7 +52,7 @@ export const createOrder = async (req, res) => {
 
   const { zone: normalizedZone, charge } = resolveDeliveryCharge(orderData.deliveryZone);
   orderData.deliveryZone = normalizedZone;
-  orderData.deliveryCharge = charge;
+  orderData.deliveryCharge = typeof orderData.deliveryCharge === 'number' ? orderData.deliveryCharge : charge;
 
   const product = await Product.findById(orderData.product);
   if (!product) {
@@ -60,14 +60,17 @@ export const createOrder = async (req, res) => {
   }
 
   const productTotal = Number(product.basePrice || 0) * Number(orderData.quantity || 1);
-  const orderTotal = Number((productTotal + charge).toFixed(2));
-  const invoiceNumber = `INV-${Date.now()}`;
+  const orderTotal = Number((productTotal + (orderData.deliveryCharge || 0)).toFixed(2));
+  const resolvedInvoiceNumber = invoiceNumber || `INV-${Date.now()}`;
+  const resolvedBatchId = batchId || resolvedInvoiceNumber;
+  const providedBillingAmount = typeof billingAmount === 'number' && !Number.isNaN(billingAmount) ? billingAmount : undefined;
 
   orderData.billing = {
-    number: invoiceNumber,
-    amount: orderTotal,
+    number: resolvedInvoiceNumber,
+    amount: providedBillingAmount !== undefined ? providedBillingAmount : orderTotal,
     generatedAt: new Date()
   };
+  orderData.batchId = resolvedBatchId;
 
   let orderUserId = req.user?.id;
   let accountPayload = null;
@@ -111,7 +114,7 @@ export const createOrder = async (req, res) => {
 export const listOrders = async (req, res) => {
   const orders = await Order.find()
     .sort({ createdAt: -1 })
-    .populate('product', 'name')
+    .populate('product', 'name imageUrl basePrice')
     .populate('user', 'name email phone')
     .populate('cancelRequest.resolvedBy', 'name email');
   res.status(200).json({ orders });
@@ -120,7 +123,7 @@ export const listOrders = async (req, res) => {
 export const listMyOrders = async (req, res) => {
   const orders = await Order.find({ user: req.user.id })
     .sort({ createdAt: -1 })
-    .populate('product', 'name slug')
+    .populate('product', 'name slug imageUrl basePrice')
     .populate('cancelRequest.resolvedBy', 'name email');
   res.status(200).json({ orders });
 };
@@ -168,7 +171,7 @@ export const reviewOrderCancellation = async (req, res) => {
   const { action, adminNote } = req.body;
 
   const order = await Order.findById(id)
-    .populate('product', 'name')
+    .populate('product', 'name imageUrl basePrice')
     .populate('user', 'name email phone');
 
   if (!order) {
@@ -213,7 +216,7 @@ export const updateOrderStatus = async (req, res) => {
     { status },
     { new: true }
   )
-    .populate('product', 'name')
+    .populate('product', 'name imageUrl basePrice')
     .populate('user', 'name email phone');
 
   if (!order) {
@@ -254,7 +257,7 @@ export const updateOrderBilling = async (req, res) => {
     { billing: billingPayload },
     { new: true }
   )
-    .populate('product', 'name')
+    .populate('product', 'name imageUrl basePrice')
     .populate('user', 'name email phone');
 
   if (!order) {
@@ -268,7 +271,7 @@ export const downloadOrderInvoice = async (req, res) => {
   const { id } = req.params;
 
   const order = await Order.findById(id)
-    .populate('product', 'name price sku')
+    .populate('product', 'name basePrice sku')
     .populate('user', 'name email phone');
 
   if (!order) {
@@ -283,46 +286,136 @@ export const downloadOrderInvoice = async (req, res) => {
 
   doc.pipe(res);
 
-  doc.fontSize(20).text('Rong Chapa Invoice', { align: 'center' });
-  doc.moveDown();
+  const brandColor = '#8b5a2b';
+  const textColor = '#111827';
+  const subtleRow = '#fcf5ee';
 
-  doc.fontSize(12).text(`Invoice #: ${order.billing?.number || order._id}`);
-  doc.text(`Generated: ${new Date(order.billing?.generatedAt || order.updatedAt).toLocaleDateString()}`);
+  const unitPrice = Number(order.product?.basePrice || 0);
+  const lineTotal = Number((unitPrice * order.quantity).toFixed(2));
+  const deliveryCharge = order.deliveryCharge || 0;
+  const totalDue = order.billing?.amount ?? Number((lineTotal + deliveryCharge).toFixed(2));
+
+  // Header
+  doc
+    .font('Helvetica-Bold')
+    .fillColor(brandColor)
+    .fontSize(26)
+    .text('RONG CHAPA', { align: 'center' });
+
+  doc
+    .fontSize(16)
+    .fillColor(textColor)
+    .moveDown(0.4)
+    .text('Order Invoice', { align: 'center' });
+
+  doc.moveDown(1);
+
+  // Order meta block
+  doc.font('Helvetica').fontSize(11).fillColor(textColor);
+  doc.text(`Order ID: ${order.billing?.number || order._id}`);
   doc.text(`Status: ${order.status}`);
-  doc.moveDown();
-
-  doc.font('Helvetica-Bold').text('Customer');
-  doc.font('Helvetica').text(`Name: ${order.customerName}`);
-  doc.text(`Email: ${order.customerEmail || 'N/A'}`);
+  doc.text(`Customer: ${order.customerName} (${order.customerEmail || 'N/A'})`);
+  doc.text(`Address: ${order.shippingAddress}`);
   doc.text(`Phone: ${order.customerPhone || 'N/A'}`);
-  doc.moveDown();
+  doc.text(`Total: ${formatCurrency(totalDue)}`);
+  doc.moveDown(1);
 
-  doc.font('Helvetica-Bold').text('Order');
-  doc.font('Helvetica').text(`Product: ${order.product?.name || 'Custom Item'}`);
-  doc.text(`Quantity: ${order.quantity}`);
-  if (order.size) {
-    doc.text(`Size: ${order.size}`);
-  }
-  if (order.paperType) {
-    doc.text(`Paper: ${order.paperType}`);
-  }
-  if (order.notes) {
-    doc.text(`Notes: ${order.notes}`);
-  }
-  doc.moveDown();
+  // Items table
+  const tableTop = doc.y + 4;
+  const tableLeft = doc.page.margins.left;
+  const tableRight = doc.page.width - doc.page.margins.right;
+  const colItem = 320;
+  const colQty = 60;
+  const colPrice = 80;
+  const colTotal = 80;
 
-  doc.font('Helvetica-Bold').text('Delivery');
-  doc.font('Helvetica').text(`Address: ${order.shippingAddress}`);
-  doc.text(`Zone: ${order.deliveryZone}`);
-  doc.text(`Charge: ${formatCurrency(order.deliveryCharge)}`);
-  doc.moveDown();
+  const headerHeight = 20;
+  doc
+    .save()
+    .rect(tableLeft, tableTop, tableRight - tableLeft, headerHeight)
+    .fill(brandColor)
+    .restore();
 
-  doc.font('Helvetica-Bold').text('Billing');
-  doc.font('Helvetica').text(`Amount: ${formatCurrency(order.billing?.amount)}`);
-  doc.text(`Notes: ${order.billing?.notes || 'N/A'}`);
-  doc.moveDown();
+  doc
+    .fillColor('#ffffff')
+    .font('Helvetica-Bold')
+    .fontSize(11)
+    .text('Item', tableLeft + 8, tableTop + 5, { width: colItem - 8 })
+    .text('Qty', tableLeft + colItem, tableTop + 5, { width: colQty, align: 'center' })
+    .text('Price', tableLeft + colItem + colQty, tableTop + 5, { width: colPrice, align: 'right' })
+    .text('Total', tableLeft + colItem + colQty + colPrice, tableTop + 5, {
+      width: colTotal,
+      align: 'right'
+    });
 
-  doc.text('Thank you for choosing Rong Chapa!', { align: 'center' });
+  const rowTop = tableTop + headerHeight;
+  const rowHeight = 22;
+
+  doc
+    .save()
+    .rect(tableLeft, rowTop, tableRight - tableLeft, rowHeight)
+    .fill(subtleRow)
+    .restore();
+
+  const productLabel = order.product?.name || 'Custom item';
+  const details = [];
+  if (order.size) details.push(`Size: ${order.size}`);
+  if (order.paperType) details.push(`Paper: ${order.paperType}`);
+  if (order.notes) details.push(order.notes);
+  const itemText = details.length ? `${productLabel} — ${details.join(' · ')}` : productLabel;
+
+  const bodyY = rowTop + 5;
+  doc
+    .font('Helvetica')
+    .fontSize(10)
+    .fillColor(textColor)
+    .text(itemText, tableLeft + 8, bodyY, { width: colItem - 8 })
+    .text(String(order.quantity), tableLeft + colItem, bodyY, { width: colQty, align: 'center' })
+    .text(formatCurrency(unitPrice), tableLeft + colItem + colQty, bodyY, {
+      width: colPrice,
+      align: 'right'
+    })
+    .text(formatCurrency(lineTotal), tableLeft + colItem + colQty + colPrice, bodyY, {
+      width: colTotal,
+      align: 'right'
+    });
+
+  // Totals under table
+  const totalsTop = rowTop + rowHeight + 10;
+  doc
+    .moveTo(tableLeft, totalsTop)
+    .lineTo(tableRight, totalsTop)
+    .strokeColor('#e5e7eb')
+    .stroke();
+
+  const labelX = tableLeft + colItem + colQty;
+  const valueX = tableRight;
+
+  const writeTotalLine = (label, value, bold = false) => {
+    doc
+      .font(bold ? 'Helvetica-Bold' : 'Helvetica')
+      .fontSize(11)
+      .fillColor(textColor)
+      .text(label, labelX, doc.y + 4, { width: colPrice, align: 'right', continued: true })
+      .text(value, valueX, doc.y, { width: colTotal, align: 'right' });
+  };
+
+  doc.moveDown(0.2);
+  writeTotalLine('Subtotal', formatCurrency(lineTotal));
+  doc.moveDown(0.1);
+  writeTotalLine('Delivery', formatCurrency(deliveryCharge));
+  doc.moveDown(0.1);
+  writeTotalLine('Total', formatCurrency(totalDue), true);
+
+  // Footer
+  doc.moveDown(3);
+  doc
+    .font('Helvetica')
+    .fontSize(10)
+    .fillColor('#4b5563')
+    .text('Thank you for your order! We hope you enjoy your prints.', {
+      align: 'center'
+    });
 
   doc.end();
 };

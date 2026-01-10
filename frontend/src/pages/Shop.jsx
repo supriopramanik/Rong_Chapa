@@ -24,7 +24,7 @@ const emptyForm = {
 
 export const ShopPage = () => {
   const { isAuthenticated, user, setSession } = useAuth();
-  const { items: cartItems, addItem, clearItems, total: cartTotal } = useCart();
+  const { items: cartItems, addItem, clearItems, total: cartTotal, updateQuantity } = useCart();
   const location = useLocation();
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
@@ -109,6 +109,31 @@ export const ShopPage = () => {
     openOrderModal(cartItems, 'cart');
   }, [cartItems, openOrderModal]);
 
+  const adjustOrderQuantity = useCallback(
+    (productId, delta) => {
+      let shouldSyncWithCart = false;
+      setOrderState((prev) => {
+        if (!prev.items.length) return prev;
+        let changed = false;
+        const updatedItems = prev.items.map((item) => {
+          if (item.product._id !== productId) return item;
+          const newQuantity = Math.max(1, Math.min(99, item.quantity + delta));
+          if (newQuantity === item.quantity) return item;
+          changed = true;
+          return { ...item, quantity: newQuantity };
+        });
+        if (!changed) return prev;
+        shouldSyncWithCart = prev.source === 'cart';
+        return { ...prev, items: updatedItems };
+      });
+
+      if (shouldSyncWithCart) {
+        updateQuantity(productId, delta);
+      }
+    },
+    [updateQuantity]
+  );
+
   useEffect(() => {
     const handleGlobalCheckout = () => {
       if (!cartItems.length || orderState.show) return;
@@ -148,7 +173,11 @@ export const ShopPage = () => {
     const deliveryCharge = (DELIVERY_OPTIONS[selectedZone] || DELIVERY_OPTIONS.dhaka).charge;
 
     try {
-      for (const item of orderState.items) {
+      const checkoutId = `checkout-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+      const invoiceNumber = `INV-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      const aggregatedAmount = Number(checkoutTotal.toFixed(2));
+      for (let index = 0; index < orderState.items.length; index += 1) {
+        const item = orderState.items[index];
         const payload = {
           customerName: form.name,
           customerEmail: form.email,
@@ -158,7 +187,10 @@ export const ShopPage = () => {
           quantity: item.quantity,
           shippingAddress: form.shippingAddress,
           deliveryZone: selectedZone,
-          deliveryCharge
+          deliveryCharge: index === 0 ? deliveryCharge : 0,
+          billingAmount: aggregatedAmount,
+          invoiceNumber,
+          batchId: checkoutId
         };
 
         if (!wasAuthenticated && !accountCreated) {
@@ -224,24 +256,63 @@ export const ShopPage = () => {
       )}
 
       {orderState.show && (
-        <div className="shop__modal">
-          <div className="shop__modal-dialog">
+        <div className="shop__modal" onClick={closeModal}>
+          <div className="shop__modal-dialog" onClick={(event) => event.stopPropagation()}>
             <button className="shop__modal-close" onClick={closeModal}>
               ×
             </button>
             <h2>Confirm your order</h2>
 
-            <ul className="shop__modal-items">
-              {orderState.items.map((item) => (
-                <li key={item.product._id}>
-                  <div>
-                    <strong>{item.product.name}</strong>
-                    <span>{item.quantity} pcs</span>
-                  </div>
-                  <span>৳{(Number(item.product.basePrice || 0) * item.quantity).toFixed(2)}</span>
-                </li>
-              ))}
-            </ul>
+            <table className="shop__modal-items-table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Quantity</th>
+                  <th>Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orderState.items.map((item) => (
+                  <tr key={item.product._id}>
+                    <td>
+                      <div className="shop__modal-item-meta">
+                        <div
+                          className={`shop__modal-item-thumb ${item.product.imageUrl ? '' : 'shop__modal-item-thumb--placeholder'}`}
+                          style={item.product.imageUrl ? { backgroundImage: `url(${item.product.imageUrl})` } : undefined}
+                          aria-hidden="true"
+                        />
+                        <div>
+                          <strong>{item.product.name}</strong>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="shop__modal-item-quantity">
+                        <button
+                          type="button"
+                          onClick={() => adjustOrderQuantity(item.product._id, -1)}
+                          disabled={item.quantity <= 1}
+                          aria-label={`Decrease quantity of ${item.product.name}`}
+                        >
+                          -
+                        </button>
+                        <span>{item.quantity} pcs</span>
+                        <button
+                          type="button"
+                          onClick={() => adjustOrderQuantity(item.product._id, 1)}
+                          aria-label={`Increase quantity of ${item.product.name}`}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </td>
+                    <td>
+                      <strong>৳{(Number(item.product.basePrice || 0) * item.quantity).toFixed(2)}</strong>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
 
             <div className="shop__delivery-summary">
               <p>
@@ -370,8 +441,8 @@ export const ShopPage = () => {
       )}
 
       {previewProduct && (
-        <div className="shop__modal shop__modal--preview">
-          <div className="shop__modal-dialog">
+        <div className="shop__modal shop__modal--preview" onClick={() => setPreviewProduct(null)}>
+          <div className="shop__modal-dialog" onClick={(event) => event.stopPropagation()}>
             <button className="shop__modal-close" onClick={() => setPreviewProduct(null)}>
               ×
             </button>

@@ -1,6 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { orderService } from '../../services/orderService.js';
 import './ShopOrders.css';
+
+const DELIVERY_RATES = {
+  dhaka: 60,
+  outside: 110
+};
 
 const statusOptions = ['pending', 'processing', 'completed', 'cancelled'];
 
@@ -31,11 +36,12 @@ export const AdminShopOrdersPage = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
-  const [updatingOrderId, setUpdatingOrderId] = useState('');
+  const [updatingBatchId, setUpdatingBatchId] = useState('');
   const [invoiceLoadingId, setInvoiceLoadingId] = useState('');
   const [billingModal, setBillingModal] = useState({
     open: false,
     order: null,
+    groupId: '',
     values: { number: '', amount: '', notes: '' }
   });
   const [billingSaving, setBillingSaving] = useState(false);
@@ -85,23 +91,36 @@ export const AdminShopOrdersPage = () => {
     loadOrders();
   }, [loadOrders]);
 
-  const handleStatusChange = async (orderId, status) => {
-    setUpdatingOrderId(orderId);
+  const getGroupId = (order) => order.batchId || order.billing?.number || order._id;
+
+  const handleStatusChangeGroup = async (groupId, status) => {
+    if (!groupId) return;
+    setUpdatingBatchId(groupId);
     setError('');
     try {
-      const updatedOrder = await orderService.updateOrderStatus(orderId, status);
-      setOrders((prev) => prev.map((order) => (order._id === orderId ? updatedOrder : order)));
+      const targetOrders = orders.filter((order) => getGroupId(order) === groupId);
+      const updatedOrders = await Promise.all(
+        targetOrders.map((order) => orderService.updateOrderStatus(order._id, status))
+      );
+      setOrders((prev) =>
+        prev.map((order) => {
+          const updated = updatedOrders.find((entry) => entry._id === order._id);
+          return updated || order;
+        })
+      );
     } catch (err) {
       setError('Could not update order status.');
     } finally {
-      setUpdatingOrderId('');
+      setUpdatingBatchId('');
     }
   };
 
   const openBillingModal = (order) => {
+    const groupId = getGroupId(order);
     setBillingModal({
       open: true,
       order,
+      groupId,
       values: {
         number: order.billing?.number || '',
         amount:
@@ -115,7 +134,7 @@ export const AdminShopOrdersPage = () => {
   };
 
   const closeBillingModal = () => {
-    setBillingModal({ open: false, order: null, values: { number: '', amount: '', notes: '' } });
+    setBillingModal({ open: false, order: null, groupId: '', values: { number: '', amount: '', notes: '' } });
   };
 
   const handleBillingInput = (field, value) => {
@@ -159,8 +178,16 @@ export const AdminShopOrdersPage = () => {
     try {
       setBillingSaving(true);
       setError('');
-      const updatedOrder = await orderService.updateOrderBilling(billingModal.order._id, payload);
-      setOrders((prev) => prev.map((order) => (order._id === updatedOrder._id ? updatedOrder : order)));
+      const targetOrders = orders.filter((order) => getGroupId(order) === billingModal.groupId);
+      const updatedOrders = await Promise.all(
+        targetOrders.map((order) => orderService.updateOrderBilling(order._id, payload))
+      );
+      setOrders((prev) =>
+        prev.map((order) => {
+          const updated = updatedOrders.find((entry) => entry._id === order._id);
+          return updated || order;
+        })
+      );
       closeBillingModal();
     } catch (err) {
       setError('Unable to save billing details.');
@@ -218,135 +245,175 @@ export const AdminShopOrdersPage = () => {
     }
   };
 
-  const renderTable = () => (
-    <div className="shop-orders__table">
-      <table>
-        <thead>
-          <tr>
-            <th>Customer</th>
-            <th>Order</th>
-            <th>Status</th>
-            <th>Cancellation</th>
-            <th>Billing</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {orders.map((order) => {
-            const hasBilling = order.billing?.number || typeof order.billing?.amount === 'number';
-            return (
-              <tr key={order._id}>
-                <td>
-                  <div className="shop-orders__customer">
-                    <strong>{order.customerName}</strong>
-                    <span>{order.customerEmail || 'No email provided'}</span>
-                    <span>{order.customerPhone || 'No phone provided'}</span>
-                  </div>
-                </td>
-                <td>
-                  <div className="shop-orders__details">
-                    <span>{order.product?.name || 'Product removed'}</span>
-                    <span>{order.quantity} pcs</span>
-                    {order.size && <span>Size: {order.size}</span>}
-                    {order.paperType && <span>Paper: {order.paperType}</span>}
-                  </div>
-                </td>
-                <td>
-                  <select
-                    className="shop-orders__status"
-                    value={order.status}
-                    onChange={(event) => handleStatusChange(order._id, event.target.value)}
-                    disabled={updatingOrderId === order._id}
-                  >
-                    {statusOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {option.charAt(0).toUpperCase() + option.slice(1)}
-                      </option>
-                    ))}
-                  </select>
-                </td>
-                <td>
-                  <div className="shop-orders__cancel">
-                    {order.cancelRequest?.status === 'pending' ? (
-                      <>
-                        <div className="shop-orders__cancel-note">
-                          <strong>Requested {formatDateTime(order.cancelRequest.requestedAt)}</strong>
-                          <span>{order.cancelRequest.reason}</span>
+  const groupedOrders = useMemo(() => {
+    const map = new Map();
+    orders.forEach((order) => {
+      const key = getGroupId(order);
+      if (!map.has(key)) {
+        map.set(key, { id: key, orders: [] });
+      }
+      map.get(key).orders.push(order);
+    });
+    return Array.from(map.values());
+  }, [orders]);
+
+  const renderOrderCards = () => (
+    <div className="shop-orders__list">
+      {groupedOrders.map((group) => {
+        const primaryOrder = group.orders[0];
+        const hasBilling = primaryOrder.billing?.number || typeof primaryOrder.billing?.amount === 'number';
+        const groupStatus = primaryOrder.status || 'pending';
+        const deliveryZoneLabel = primaryOrder.deliveryZone === 'outside' ? 'Outside Dhaka' : 'Inside Dhaka';
+        const groupDeliveryCharge = group.orders.reduce(
+          (sum, order) => sum + (typeof order.deliveryCharge === 'number' ? order.deliveryCharge : 0),
+          0
+        );
+        const deliveryChargeValue =
+          groupDeliveryCharge > 0
+            ? groupDeliveryCharge
+            : DELIVERY_RATES[primaryOrder.deliveryZone] ?? DELIVERY_RATES.dhaka;
+        const deliveryChargeText = formatAmount(deliveryChargeValue);
+        const groupAmount = group.orders.reduce(
+          (sum, order) => sum + Number(order.product?.basePrice || 0) * order.quantity,
+          0
+        );
+        return (
+          <article key={group.id} className="shop-orders__order-card">
+            <div className="shop-orders__order-header">
+              <div>
+                <strong className="shop-orders__order-title">#{primaryOrder.batchId?.slice(-6) || primaryOrder._id.slice(-6)} — {primaryOrder.customerName}</strong>
+                <p className="shop-orders__order-meta">{primaryOrder.shippingAddress || 'No address provided'}</p>
+                <p className="shop-orders__order-zone">
+                  Delivery: {deliveryZoneLabel} — {deliveryChargeText}
+                </p>
+              </div>
+              <div className="shop-orders__order-status">
+                <select
+                  value={groupStatus}
+                  onChange={(event) => handleStatusChangeGroup(group.id, event.target.value)}
+                  disabled={updatingBatchId === group.id}
+                >
+                  {statusOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option.charAt(0).toUpperCase() + option.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="shop-orders__order-products">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {group.orders.map((order) => (
+                    <tr key={order._id}>
+                      <td>
+                        <div className="shop-orders__product">
+                          {order.product?.imageUrl && (
+                            <img src={order.product.imageUrl} alt={order.product.name} />
+                          )}
+                          <div>
+                            <strong>{order.product?.name || 'Product removed'}</strong>
+                            {order.size && <span>Size: {order.size}</span>}
+                            {order.paperType && <span>Paper: {order.paperType}</span>}
+                          </div>
                         </div>
-                        <textarea
-                          value={cancelNotes[order._id] || ''}
-                          onChange={(event) => handleCancelNoteChange(order._id, event.target.value)}
-                          placeholder="Admin note (optional)"
-                        />
-                        <div className="shop-orders__cancel-actions">
-                          <button
-                            type="button"
-                            onClick={() => handleCancelDecision(order, 'decline')}
-                            disabled={cancelActionId === order._id}
-                          >
-                            {cancelActionId === order._id ? 'Working...' : 'Decline'}
-                          </button>
-                          <button
-                            type="button"
-                            className="shop-orders__cancel-approve"
-                            onClick={() => handleCancelDecision(order, 'approve')}
-                            disabled={cancelActionId === order._id}
-                          >
-                            {cancelActionId === order._id ? 'Working...' : 'Approve & cancel'}
-                          </button>
-                        </div>
-                      </>
-                    ) : order.cancelRequest?.status === 'approved' ? (
-                      <div className="shop-orders__cancel-status shop-orders__cancel-status--approved">
-                        <strong>Approved</strong>
-                        <span>
-                          {order.cancelRequest.resolvedAt ? formatDateTime(order.cancelRequest.resolvedAt) : 'Resolved'}
-                        </span>
-                        {order.cancelRequest.adminNote && <p>{order.cancelRequest.adminNote}</p>}
-                      </div>
-                    ) : order.cancelRequest?.status === 'declined' ? (
-                      <div className="shop-orders__cancel-status shop-orders__cancel-status--declined">
-                        <strong>Declined</strong>
-                        <span>
-                          {order.cancelRequest.resolvedAt ? formatDateTime(order.cancelRequest.resolvedAt) : 'Reviewed'}
-                        </span>
-                        {order.cancelRequest.adminNote && <p>{order.cancelRequest.adminNote}</p>}
-                      </div>
-                    ) : (
-                      <span className="shop-orders__cancel-empty">No request</span>
-                    )}
+                      </td>
+                      <td>{order.quantity} pcs</td>
+                      <td>
+                        <strong>
+                          ৳{(Number(order.product?.basePrice || 0) * order.quantity).toFixed(2)}
+                        </strong>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="shop-orders__order-footer">
+              <div className="shop-orders__billing">
+                {primaryOrder.billing?.number && <span>Invoice: {primaryOrder.billing.number}</span>}
+                <span>
+                  Amount: Tk {(hasBilling ? primaryOrder.billing?.amount ?? groupAmount : groupAmount).toFixed(2)}
+                </span>
+                {primaryOrder.billing?.notes ? (
+                  <span>Notes: {primaryOrder.billing.notes}</span>
+                ) : (
+                  <span className="shop-orders__billing-empty">Invoice pending</span>
+                )}
+              </div>
+              <div className="shop-orders__actions">
+                <button type="button" onClick={() => openBillingModal(primaryOrder)}>
+                  {primaryOrder.billing ? 'Edit Bill' : 'Add Bill'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleInvoiceDownload(primaryOrder)}
+                  disabled={!hasBilling || invoiceLoadingId === primaryOrder._id}
+                >
+                  {invoiceLoadingId === primaryOrder._id ? 'Preparing...' : 'Download PDF'}
+                </button>
+              </div>
+            </div>
+            <div className="shop-orders__cancel">
+              {primaryOrder.cancelRequest?.status === 'pending' ? (
+                <>
+                  <div className="shop-orders__cancel-note">
+                    <strong>Requested {formatDateTime(primaryOrder.cancelRequest.requestedAt)}</strong>
+                    <span>{primaryOrder.cancelRequest.reason}</span>
                   </div>
-                </td>
-                <td>
-                  {hasBilling ? (
-                    <div className="shop-orders__billing">
-                      {order.billing?.number && <span>Invoice: {order.billing.number}</span>}
-                      {typeof order.billing?.amount === 'number' && (
-                        <span>Amount: Tk {order.billing.amount.toFixed(2)}</span>
-                      )}
-                      {order.billing?.notes && <span>Notes: {order.billing.notes}</span>}
-                    </div>
-                  ) : (
-                    <span className="shop-orders__billing-empty">No billing info</span>
-                  )}
-                </td>
-                <td className="shop-orders__actions">
-                  <button type="button" onClick={() => openBillingModal(order)}>
-                    {order.billing ? 'Edit Bill' : 'Add Bill'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleInvoiceDownload(order)}
-                    disabled={!hasBilling || invoiceLoadingId === order._id}
-                  >
-                    {invoiceLoadingId === order._id ? 'Preparing...' : 'Download PDF'}
-                  </button>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                  <textarea
+                    value={cancelNotes[primaryOrder._id] || ''}
+                    onChange={(event) => handleCancelNoteChange(primaryOrder._id, event.target.value)}
+                    placeholder="Admin note (optional)"
+                  />
+                  <div className="shop-orders__cancel-actions">
+                    <button
+                      type="button"
+                      onClick={() => handleCancelDecision(primaryOrder, 'decline')}
+                      disabled={cancelActionId === primaryOrder._id}
+                    >
+                      {cancelActionId === primaryOrder._id ? 'Working...' : 'Decline'}
+                    </button>
+                    <button
+                      type="button"
+                      className="shop-orders__cancel-approve"
+                      onClick={() => handleCancelDecision(primaryOrder, 'approve')}
+                      disabled={cancelActionId === primaryOrder._id}
+                    >
+                      {cancelActionId === primaryOrder._id ? 'Working...' : 'Approve & cancel'}
+                    </button>
+                  </div>
+                </>
+              ) : primaryOrder.cancelRequest?.status === 'approved' ? (
+                <div className="shop-orders__cancel-status shop-orders__cancel-status--approved">
+                  <strong>Approved</strong>
+                  <span>
+                    {primaryOrder.cancelRequest.resolvedAt ? formatDateTime(primaryOrder.cancelRequest.resolvedAt) : 'Resolved'}
+                  </span>
+                  {primaryOrder.cancelRequest.adminNote && <p>{primaryOrder.cancelRequest.adminNote}</p>}
+                </div>
+              ) : primaryOrder.cancelRequest?.status === 'declined' ? (
+                <div className="shop-orders__cancel-status shop-orders__cancel-status--declined">
+                  <strong>Declined</strong>
+                  <span>
+                    {primaryOrder.cancelRequest.resolvedAt ? formatDateTime(primaryOrder.cancelRequest.resolvedAt) : 'Reviewed'}
+                  </span>
+                  {primaryOrder.cancelRequest.adminNote && <p>{primaryOrder.cancelRequest.adminNote}</p>}
+                </div>
+              ) : (
+                <span className="shop-orders__cancel-empty">No request</span>
+              )}
+            </div>
+          </article>
+        );
+      })}
     </div>
   );
 
@@ -405,7 +472,7 @@ export const AdminShopOrdersPage = () => {
         ) : orders.length === 0 ? (
           <p className="shop-orders__empty">No shop orders yet.</p>
         ) : (
-          renderTable()
+          renderOrderCards()
         )}
       </section>
 
