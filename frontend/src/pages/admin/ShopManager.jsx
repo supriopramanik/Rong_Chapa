@@ -197,34 +197,22 @@ export const AdminShopManagerPage = () => {
               placeholder="https://..."
             />
           </label>
-          <label className="shop-manager__checkbox">
+          {productForm.imageUrl && (
+            <div className="shop-manager__image-preview">
+              <img src={productForm.imageUrl} alt={productForm.name || 'Product preview'} />
+            </div>
+          )}
+          <label className="shop-manager__toggle">
+            <span>Active on storefront</span>
             <input
               type="checkbox"
               checked={productForm.isActive}
               onChange={(event) => setProductForm((prev) => ({ ...prev, isActive: event.target.checked }))}
             />
-            Active on storefront
+            <div className={`shop-manager__switch ${productForm.isActive ? 'shop-manager__switch--on' : ''}`}>
+              <div className="shop-manager__switch-knob" />
+            </div>
           </label>
-          <label>
-            Categories
-            <select
-              multiple
-              value={productForm.categories}
-              onChange={(event) =>
-                setProductForm((prev) => ({
-                  ...prev,
-                  categories: Array.from(event.target.selectedOptions, (option) => option.value)
-                }))
-              }
-            >
-              {categories.map((category) => (
-                <option key={category._id} value={category._id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </label>
-
           <div className="shop-manager__actions">
             <button type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Saving...' : productButtonLabel}
@@ -237,37 +225,7 @@ export const AdminShopManagerPage = () => {
           </div>
         </form>
 
-        <div className="shop-manager__card">
-          <h3>Categories</h3>
-          <form className="shop-manager__category-form" onSubmit={handleCategorySubmit}>
-            <input
-              value={categoryForm.name}
-              onChange={(event) => setCategoryForm((prev) => ({ ...prev, name: event.target.value }))}
-              placeholder="Category name"
-              required
-            />
-            <input
-              value={categoryForm.slug}
-              onChange={(event) => setCategoryForm((prev) => ({ ...prev, slug: event.target.value }))}
-              placeholder="category-slug"
-              required
-            />
-            <button type="submit" disabled={isSubmitting}>
-              Add Category
-            </button>
-          </form>
-
-          <ul className="shop-manager__category-list">
-            {categories.map((category) => (
-              <li key={category._id}>
-                <span>{category.name}</span>
-                <button type="button" onClick={() => deleteCategory(category._id)} disabled={isSubmitting}>
-                  Delete
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
+        {/* Category management removed as per request */}
       </section>
 
       <section className="shop-manager__card">

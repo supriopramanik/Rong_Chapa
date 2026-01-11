@@ -371,6 +371,17 @@ export const PrintRequestPage = () => {
                 required
               />
             </label>
+            <label className="print-request__payment">
+              Payment information
+            <div className="print-request__payment-qr">
+                <span className="print-request__payment-qr-text">bKash (Send Money): 01751156833</span>
+                <span className="print-request__payment-qr-text">nagad (Send Money): 01751156833</span>
+                <img
+                  src="https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=https://qr.bka.sh/281014021RjmoKcTgS40026643"
+                  alt="bKash QR for 01751156833"
+                />
+              </div>
+            </label>
           </div>
         </fieldset>
 

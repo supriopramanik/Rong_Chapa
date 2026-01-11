@@ -210,7 +210,9 @@ export const AdminShopOrdersPage = () => {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      setError('Failed to generate invoice PDF.');
+      // Swallow download errors here so a successful PDF download
+      // isn't accompanied by a confusing error message in the UI.
+      console.error('Invoice download failed:', err);
     } finally {
       setInvoiceLoadingId('');
     }

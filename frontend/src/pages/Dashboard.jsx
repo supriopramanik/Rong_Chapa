@@ -421,9 +421,6 @@ export const UserDashboardPage = () => {
         {!printLoading && !printError && printOrders.length === 0 && (
           <div className="dashboard__empty">
             <p>You have not submitted any custom print requests yet.</p>
-            <Link to="/print" className="dashboard__cta">
-              Submit your first request
-            </Link>
           </div>
         )}
 
@@ -501,9 +498,6 @@ export const UserDashboardPage = () => {
         {!shopLoading && !shopError && groupedShopOrders.length === 0 && (
           <div className="dashboard__empty">
             <p>You have not placed any storefront orders yet.</p>
-            <Link to="/shop" className="dashboard__cta">
-              Browse the shop
-            </Link>
           </div>
         )}
 
