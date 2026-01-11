@@ -36,6 +36,7 @@ export const ShopPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [orderError, setOrderError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [cartToast, setCartToast] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -83,6 +84,7 @@ export const ShopPage = () => {
 
   const handleAddToCart = ({ product, quantity }) => {
     addItem(product, quantity);
+    setCartToast('Added to cart successfully');
   };
 
   const openOrderModal = useCallback(
@@ -153,6 +155,16 @@ export const ShopPage = () => {
       navigate('/shop', { replace: true });
     }
   }, [location.search, cartItems, orderState.show, openOrderModal, navigate]);
+
+  useEffect(() => {
+    if (!cartToast) return;
+
+    const timer = setTimeout(() => {
+      setCartToast('');
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [cartToast]);
 
   const closeModal = () => {
     setOrderState({ show: false, items: [], source: null });
@@ -229,6 +241,12 @@ export const ShopPage = () => {
 
   return (
     <div className="shop">
+      {cartToast && (
+        <div className="shop__toast">
+          <span className="shop__toast-icon">✓</span>
+          <span className="shop__toast-text">{cartToast}</span>
+        </div>
+      )}
       <section className="shop__hero">
         <h1>Shop &amp; Checkout In Minutes</h1>
         <p>Select a product, add it to your cart, and confirm the order without juggling extra form fields.</p>

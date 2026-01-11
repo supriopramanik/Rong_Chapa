@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useCart } from '../../context/CartContext.jsx';
@@ -11,6 +11,7 @@ export const Navbar = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
+  const cartRef = useRef(null);
 
   const toggle = () => setOpen((prev) => !prev);
   const close = () => {
@@ -34,6 +35,22 @@ export const Navbar = () => {
   const closeCartPanel = () => {
     setCartOpen(false);
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (cartRef.current && !cartRef.current.contains(event.target)) {
+        setCartOpen(false);
+      }
+    };
+
+    if (cartOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [cartOpen]);
 
   const handleCheckoutCTA = () => {
     if (!cartItems.length) {
@@ -82,7 +99,7 @@ export const Navbar = () => {
               My Profile
             </NavLink>
           )}
-          <div className="navbar__cart">
+          <div className="navbar__cart" ref={cartRef}>
             <button
               type="button"
               className="navbar__cart-button"

@@ -40,7 +40,8 @@ export const ProductCard = ({ product, onPreview, onAddToCart, onOrderNow }) => 
       <div className="product-card__body">
         <div className="product-card__meta">
           <h3 className="product-card__title">{product.name}</h3>
-          {product.description && <p className="product-card__description">{product.description}</p>}
+          {/* Description Add to remove comment */}
+          {/* {product.description && <p className="product-card__description">{product.description}</p>} */}
         </div>
 
         <span className="product-card__price">Starting at ৳{basePrice.toFixed(2)}</span>
