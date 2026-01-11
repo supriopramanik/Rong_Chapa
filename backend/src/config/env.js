@@ -11,7 +11,8 @@ const parseClientOrigins = (value) => {
   const baselineOrigins = [
     'https://rong-chapa.onrender.com',
     'https://rong-chapa.netlify.app',
-    'http://localhost:5173'
+    'http://localhost:5173',
+    'https://rong-chapa.pages.dev'
   ];
 
   const configuredOrigins = value
