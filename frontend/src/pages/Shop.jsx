@@ -234,7 +234,7 @@ export const ShopPage = () => {
         <p>Select a product, add it to your cart, and confirm the order without juggling extra form fields.</p>
       </section>
 
-      {loading && <p className="shop__status">Loading products...</p>}
+      {loading && <p className="shop__status">Loading products from our free API... Please wait a moment...</p>}
       {productError && !loading && <p className="shop__status shop__status--error">{productError}</p>}
 
       <div className="shop__grid">
